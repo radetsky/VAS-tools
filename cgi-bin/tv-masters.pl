@@ -22,7 +22,38 @@ use 5.8.0;
 use strict;
 use warnings;
 
+use NetSDS::Asterisk::Manager; 
+use CGI; 
+use DBI;
+use Data::Dumper;
 
+print "Hello, VES-media\n"; 
+
+my $manager = NetSDS::Asterisk::Manager->new ( 
+		host => 'localhost',
+		port => '5038',
+		username => 'netsds',
+		secret => 'FollowTheWideRabbit2001',
+		events => 'Off',
+); 
+
+my $is_connected = $manager->connect; 
+unless ( defined ( $is_connected ) ) { 
+	warn 'Asterisk Manager does not connected. ' . $manager->geterror; 
+	die;
+}
+
+my $sent = $manager->sendcommand ( Action => "QueueStatus" );
+unless ( defined ( $sent ) ) { 
+	warn 'Could not send action to Asterisk Manager. ' . $manager->geterror; 
+	die; 
+}
+
+my $answer = undef; 
+
+while ( $answer = $manager->receive_answer ) { 
+	warn Dumper ( $answer ); 
+}
 
 1;
 #===============================================================================
