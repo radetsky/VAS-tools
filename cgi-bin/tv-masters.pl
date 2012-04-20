@@ -27,7 +27,11 @@ use CGI;
 use DBI;
 use Data::Dumper;
 
+my $cgi = CGI->new;
+my $queuename = $cgi->param('queue');
+
 print "Hello, VES-media\n"; 
+print "We working on $queuename\n"; 
 
 my $manager = NetSDS::Asterisk::Manager->new ( 
 		host => 'localhost',
@@ -50,9 +54,27 @@ unless ( defined ( $sent ) ) {
 }
 
 my $answer = undef; 
+my $agentsStatus = undef;
+my $agentsPenalty = undef; 
 
 while ( $answer = $manager->receive_answer ) { 
-	warn Dumper ( $answer ); 
+#warn Dumper ( $answer );
+  if ( defined ( $answer->{'Event'} ) ) { 
+  	if ( $answer->{'Event'} =~ /QueueMember/i ) { 
+			if ( $answer->{'Queue'} =~ /$queuename/i ) {
+				if ( defined ( $answer->{'Name'} ) ) { 
+				  my $agentname = $answer->{'Name'}; 
+					$agentsStatus->{$agentname} = $answer->{'Status'};
+					$agentsPenalty->{$agentname} = $answer->{'Penalty'}; 
+			  	#warn Dumper ($answer); 
+				}
+			}
+		}
+	}
+}
+
+foreach my $agent ( sort keys %$agentsStatus ) { 
+	print join ( ' : ', $agent, $agentsStatus->{$agent}, $agentsPenalty->{$agent} ) . "\n"; 	
 }
 
 1;
