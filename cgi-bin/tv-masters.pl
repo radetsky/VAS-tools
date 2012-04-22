@@ -30,8 +30,11 @@ use Data::Dumper;
 my $cgi = CGI->new;
 my $queuename = $cgi->param('queue');
 
-print "Hello, VES-media\n"; 
 print "We working on $queuename\n"; 
+
+#
+# Connect to Asterisk Manager
+#
 
 my $manager = NetSDS::Asterisk::Manager->new ( 
 		host => 'localhost',
@@ -47,7 +50,11 @@ unless ( defined ( $is_connected ) ) {
 	die;
 }
 
-my $sent = $manager->sendcommand ( Action => "QueueStatus" );
+#
+# Get QueueStatus to detect agents states and penalty.
+#
+
+my $sent = $manager->sendcommand ( Action => 'QueueStatus' );
 unless ( defined ( $sent ) ) { 
 	warn 'Could not send action to Asterisk Manager. ' . $manager->geterror; 
 	die; 
@@ -73,9 +80,51 @@ while ( $answer = $manager->receive_answer ) {
 	}
 }
 
+#
+# Output Agents states and penalty
+#
+
 foreach my $agent ( sort keys %$agentsStatus ) { 
 	print join ( ' : ', $agent, $agentsStatus->{$agent}, $agentsPenalty->{$agent} ) . "\n"; 	
 }
+
+#
+# Get Status to collect information about active calls 
+#
+
+$sent = $manager->sendcommand ( Action => 'Status' ); 
+unless ( defined ( $sent ) ) { 
+	warn 'Could not send action to Asterisk Manager. ' . $manager->geterror; 
+	die; 
+}
+
+my $acctcode = undef; 
+my $list_acctcodes = undef; 
+
+while ( $answer = $manager->receive_answer ) {
+#	warn Dumper ($answer);
+  
+	if ( defined ( $answer->{'Event'} ) ) { 
+		if ( $answer->{'Event'} =~ /^Status/i ) { 
+			if ( defined ( $answer->{'Accountcode'} ) ) { 
+				if ( $answer->{'Accountcode'} ne '' ) { 
+					$acctcode = $answer->{'Accountcode'};
+					if ( defined ( $list_acctcodes->{$acctcode} ) ) { 
+						$list_acctcodes->{$acctcode} = $list_acctcodes->{$acctcode} + 1; 
+					} else { 
+						$list_acctcodes->{$acctcode} = 1; 
+					}
+				}
+		  }
+    }
+  }
+}
+
+print "List of account codes and count of calls.\n"; 
+foreach $acctcode ( keys %$list_acctcodes ) {
+	print $acctcode . " : " . $list_acctcodes->{$acctcode} . "\n"; 
+}
+
 
 1;
 #===============================================================================
