@@ -6,7 +6,7 @@ IVR realtime statistic Period
 </select>
 
 <br> 
-[current date] [какие-то цифры]
+[% date_now %]  [какие-то цифры]
 </p>
 <table width="100%" border="1" style="border-width: 1px; border-collapse: collapse;">
 <thead>
@@ -36,29 +36,19 @@ Min.
 <tr>
 <td>Warning</td>
 <td> </td>
-<td> </td>
+<td>[% warning_online %]</td>
 <td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-</tr>
-
-<!-- Строка --> 
-<tr>
-<td>Check for DTMF</td>
-<td> </td>
-<td> </td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% warning_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
 <!-- Строка --> 
 <tr>
-<td>Introduction</td>
+<td>Greeting</td>
 <td> </td>
-<td> </td>
+<td>[% greeting_online %] </td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% greeting_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
@@ -66,9 +56,19 @@ Min.
 <tr>
 <td>Main menu</td>
 <td> </td>
+<td> [% mainmenu_online %] </td>
+<td align="right">0</td>
+<td align="right">[% mainmenu_cnt %]</td>
+<td align="right">0</td>
+</tr>
+
+<!-- Строка --> 
+<tr>
+<td>Check for DTMF</td>
 <td> </td>
+<td>[% waitdtmf_online %]</td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% waitdtmf_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
@@ -76,9 +76,9 @@ Min.
 <tr>
 <td>Wait for Expert 01</td>
 <td> </td>
-<td> </td>
+<td>[% wait_expert1_online %]</td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% wait_expert1_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
@@ -86,9 +86,9 @@ Min.
 <tr>
 <td>Expert 01</td>
 <td> </td>
-<td> </td>
+<td>[% expert1_online %]</td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% expert1_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
@@ -96,9 +96,9 @@ Min.
 <tr>
 <td>Wait for Expert 02</td>
 <td> </td>
-<td> </td>
+<td>[% wait_expert2_online %]</td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% wait_expert2_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
@@ -106,9 +106,9 @@ Min.
 <tr>
 <td>Expert 02</td>
 <td> </td>
-<td> </td>
+<td>[% expert2_online %] </td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% expert2_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
@@ -116,26 +116,16 @@ Min.
 <tr>
 <td>Wait for answer</td>
 <td> </td>
-<td> </td>
+<td>[% wait_answer_online %] </td>
 <td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% wait_for_cloud_cnt %]</td>
 <td align="right">0</td>
 </tr>
 
 <!-- Строка --> 
 <tr>
-<td>CC 01</td>
-<td> </td>
-<td> </td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-</tr>
-
-<!-- Строка -->
-<tr>
-<td>CC 02</td>
-<td> </td>
+<td>CC 01 ([% cc01_state %])</td>
+<td>[% cc01_rt %]</td>
 <td> </td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -144,18 +134,8 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 03</td>
-<td> </td>
-<td> </td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-</tr>
-
-<!-- Строка -->
-<tr>
-<td>CC 04</td>
-<td> </td>
+<td>CC 02  ([% cc02_state %])</td>
+<td>[% cc02_rt %]</td>
 <td> </td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -164,8 +144,8 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 05</td>
-<td> </td>
+<td>CC 03 ([% cc03_state %])</td>
+<td>[% cc3_rt %] </td>
 <td> </td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -174,8 +154,28 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 06</td>
+<td>CC 04 ([% cc04_state %])</td>
+<td>[% cc04_rt %] </td>
 <td> </td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+
+<!-- Строка -->
+<tr>
+<td>CC 05 ([% cc05_state %])</td>
+<td>[% cc05_rt %] </td>
+<td> </td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+
+<!-- Строка -->
+<tr>
+<td>CC 06 ([% cc06_state %])</td>
+<td>[% cc06_rt %] </td>
 <td> </td>
 <td align="right">0</td>
 <td align="right">0</td>

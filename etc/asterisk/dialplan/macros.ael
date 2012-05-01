@@ -1,0 +1,13 @@
+//*********************
+//* Make incoming call 
+//*********************
+
+macro init-call () {
+//    &standartize_msisdn();
+    System (/bin/mkdir -p /var/spool/asterisk/monitor/${STRFTIME(${EPOCH},,%Y/%m/%d/)});
+    Set(MONITOR_FILENAME=${STRFTIME(${EPOCH},,%Y/%m/%d/%H-%M-%S)}_${CALLERID(num)});
+    Set(TIMEOUT(absolute)=3600);
+    Set(CHANNEL(language)=ru);
+    MixMonitor(${MONITOR_FILENAME}.wav); 
+    return;
+};

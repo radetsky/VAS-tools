@@ -1,0 +1,47 @@
+context default {
+	includes {
+	    main-ivr;
+	    //mobiles;
+	    //world; 
+	};
+
+	_111 => {
+	    Set(CHANNEL(language)=ru);
+	    SayUnixTime(,EET,H 'hours' M 'minutes');
+	    Hangup(17);
+	};
+
+	_112 => {
+	    Answer();
+    	    MusicOnHold();
+	};
+	
+	_113 => {
+	    Set(CHANNEL(language)=ru);
+	    Answer();
+	    Playback(demo-echotest) ; //Приветствие
+	    Echo() ; //Выполняем проверку эха
+	    Playback(demo-echodone) ; //Говорим, что тест закончен
+	};
+	_114 => {
+	    Record(/tmp/asterisk-recording:alaw);
+	    Wait(2);
+	    Playback(/tmp/asterisk-recording);
+	};
+
+	_88 => {
+          goto main-ivr,s,1;
+	}; 
+
+	_9XXX => { 
+	    //&local-call();
+	    Dial(SIP/${EXTEN},120,tT);
+	    Hangup();
+	};
+
+	_X. => {
+          goto main-ivr,s,1;
+	};
+
+};
+

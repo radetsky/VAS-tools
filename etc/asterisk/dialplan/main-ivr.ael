@@ -1,0 +1,214 @@
+// MOH Classes
+// all_masters_busy
+// expert_busy
+// greeting
+// main_menu
+// thank_you
+// wait_a_first
+// warning
+
+context dial_in { 
+	89 => { 
+	    	Set(CDR(dnid)=2012); 
+				Set(CDR(accountcode)=2012);
+		goto ivr-tv-kz|s|1;
+	};
+	0443230274 => { 
+		Set(CDR(dnid)=0443230274); 
+		goto ivr-tv-kz|s|1;
+	}; 
+	77 => {
+	   	Set(CDR(dnid)=2077); 
+	    	AgentLogin();
+	};
+	0443230280 => {
+		Set(CDR(dnid)=0443230280);
+		Set(CDR(accountcode)=0443230280);
+		AgentLogin();
+	};
+
+}
+
+context ivr-tv-kz-expert1 {
+	s => {
+	    BackGround(ves-media/custom/expert_busy);
+	    WaitExten(8);
+	};
+	2 => {
+     EXIT_SECONDS=${CDR(billsec)};
+     SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+     ENTER_SECONDS=${CDR(billsec)}; 
+		 AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},2,wait_expert1,wait_expert2,${PREVIOUS_ID},${SECONDS});
+		 goto ivr-tv-kz-expert2|s|1; 
+	};
+	3 => { 
+		 EXIT_SECONDS=${CDR(billsec)};
+     SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+     ENTER_SECONDS=${CDR(billsec)}; 
+		 AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},3,wait_expert1,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
+		 goto ivr-tv-kz-cloud|s|1; 
+	};
+	i => { goto s|1; };
+	t => { 
+		EXIT_SECONDS=${CDR(billsec)};
+    SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+    ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,wait_expert1,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-cloud|s|1; };
+};
+
+context ivr-tv-kz-expert2 {
+	s => {
+    	BackGround(ves-media/custom/expert2_busy);
+	    WaitExten(8);
+	};
+	1 => {
+	  EXIT_SECONDS=${CDR(billsec)};
+	  SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+	  ENTER_SECONDS=${CDR(billsec)};	
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},2,wait_expert2,wait_expert1,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-expert1|s|1; 
+	};
+	3 => { 
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},3,wait_expert2,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-cloud|s|1; 
+	};
+	
+	i => { goto s|1; };
+	t => {
+		EXIT_SECONDS=${CDR(billsec)};
+    SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+    ENTER_SECONDS=${CDR(billsec)};	
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,wait_expert2,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-cloud|s|1; 
+	};
+};
+
+context ivr-tv-kz-cloud {
+	s => {
+		  QUEUE_MAX_PENALTY=0;
+	q1:
+		  QUEUE_MAX_PENALTY=${QUEUE_MAX_PENALTY}+1;
+	    PlayBack(ves-media/custom/wait_a_first);
+	    Queue(TV-Masters,rtTn,,,15);
+			if (${QUEUESTATUS}==JOINEMPTY) { 
+				goto cc; 
+			} 
+			QUEUE_MAX_PENALTY=${QUEUE_MAX_PENALTY}+1;
+    	PlayBack(ves-media/custom/all_masters_busy);
+	    Queue(TV-Masters,rtTn,,,15);
+			if (${QUEUESTATUS}==JOINEMPTY) {
+				goto cc; 
+			} 
+	    AGI(navigation_taps_save.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,ivr-tv-cloud,ivr-tv-kz-cloud);
+			
+			if (${CDR(billsec)} > 180) { 
+				goto l1; 
+			} 
+			goto q1;
+	cc: 
+			NoOp(billsec=${CDR(billsec)});
+		  if (${CDR(billsec)} > 180) {
+				goto l1; 
+			}
+			Dial(SIP/ves-media/0445380338,120,tT);
+			if ("${DIALSTATUS}" != "ANSWER") { 
+				PlayBack(ves-media/custom/all_masters_busy);
+				goto q1; 
+			}
+			Hangup(); 
+	l1:
+			Playback(ves-media/custom/call_later);
+			Hangup();
+	};
+};
+
+context ivr-tv-kz {
+	s => {
+	  // Initialize 
+		Set(TIMEOUT(absolute)=3600);
+		Set(CHANNEL(language)=ru);
+		Set(TIMEOUT(digits)=120);
+		Set(CUSTOM_DST=ivr-tv-kz);
+		System (/bin/mkdir -p /var/spool/asterisk/monitor/${STRFTIME(${EPOCH},,%Y/%m/%d/)});
+		Set(MONITOR_FILENAME=${STRFTIME(${EPOCH},,%Y/%m/%d/%H-%M-%S)}_${CALLERID(num)});
+		Set(CDR(userfield)=${MONITOR_FILENAME}.wav); 
+		MixMonitor(${MONITOR_FILENAME}.wav); 
+		Answer();
+		Wait(0.5);
+		PREVIOUS_ID=0;
+		SECONDS=0;
+	
+		// Warning 
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},n,ivr-dial-in,warning,${PREVIOUS_ID},${SECONDS});
+		PlayBack(ves-media/custom/warning_kz);
+		EXIT_SECONDS=${CDR(billsec)}; 
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS}; 
+
+		// Greeting 
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},n,warning,greeting,${PREVIOUS_ID},${SECONDS});
+		PlayBack(ves-media/custom/greeting_kz);
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+	menu:
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},n,greeting,mainmenu,${PREVIOUS_ID},${SECONDS});
+		Background(ves-media/custom/main_menu);
+		EXIT_SECONDS=${CDR(billsec)};
+    SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+	  ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},n,mainmenu,waitdtmf,${PREVIOUS_ID},${SECONDS});
+		WaitExten(10);
+	};
+
+	1 => {
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+		
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},1,waitdtmf,wait_expert1,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-expert1|s|1; 
+	};
+
+	2 => { 
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+		
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},2,waitdtmf,wait_expert2,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-expert2|s|1; 
+	};
+
+	3 => { 
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},3,waitdtmf,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-cloud|s|1; 
+	};
+
+	i => { goto s|menu; };
+	t => { 
+		EXIT_SECONDS=${CDR(billsec)};
+	  SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+		
+		ENTER_SECONDS=${CDR(billsec)};
+		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,waitdtmf,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
+		goto ivr-tv-kz-cloud|s|1; };
+};
+
+
