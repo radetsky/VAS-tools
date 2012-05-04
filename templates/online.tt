@@ -6,7 +6,7 @@ IVR realtime statistic Period
 </select>
 
 <br> 
-[% date_now %]  [какие-то цифры]
+[% date_now %]  
 </p>
 <table width="100%" border="1" style="border-width: 1px; border-collapse: collapse;">
 <thead>
@@ -37,9 +37,9 @@ Min.
 <td>Warning</td>
 <td> </td>
 <td>[% warning_online %]</td>
-<td align="right">0</td>
+<td align="right">[% warning_avg %]</td>
 <td align="right">[% warning_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% warning_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -47,9 +47,9 @@ Min.
 <td>Greeting</td>
 <td> </td>
 <td>[% greeting_online %] </td>
-<td align="right">0</td>
+<td align="right">[% greeting_avg %]</td>
 <td align="right">[% greeting_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% greeting_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -57,9 +57,9 @@ Min.
 <td>Main menu</td>
 <td> </td>
 <td> [% mainmenu_online %] </td>
-<td align="right">0</td>
+<td align="right">[% mainmenu_avg %]</td>
 <td align="right">[% mainmenu_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% mainmenu_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -67,9 +67,9 @@ Min.
 <td>Check for DTMF</td>
 <td> </td>
 <td>[% waitdtmf_online %]</td>
-<td align="right">0</td>
+<td align="right">[% waitdtmf_avg %]</td>
 <td align="right">[% waitdtmf_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% waitdtmf_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -77,9 +77,9 @@ Min.
 <td>Wait for Expert 01</td>
 <td> </td>
 <td>[% wait_expert1_online %]</td>
-<td align="right">0</td>
+<td align="right">[% wait_expert1_avg %]</td>
 <td align="right">[% wait_expert1_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% wait_expert1_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -97,9 +97,9 @@ Min.
 <td>Wait for Expert 02</td>
 <td> </td>
 <td>[% wait_expert2_online %]</td>
-<td align="right">0</td>
+<td align="right">[% wait_expert2_avg %]</td>
 <td align="right">[% wait_expert2_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% wait_expert2_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -116,10 +116,10 @@ Min.
 <tr>
 <td>Wait for answer</td>
 <td> </td>
-<td>[% wait_answer_online %] </td>
-<td align="right">0</td>
+<td>[% wait_for_cloud_online %] </td>
+<td align="right">[% wait_for_cloud_avg %]</td>
 <td align="right">[% wait_for_cloud_cnt %]</td>
-<td align="right">0</td>
+<td align="right">[% wait_for_cloud_min %]</td>
 </tr>
 
 <!-- Строка --> 
@@ -184,12 +184,12 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>DTMF ([какие-то цифры])</td>
+<td>DTMF (-[% dtmfminus %]/+[% dtmfplus %])</td>
 <td> </td>
-<td> </td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td>[% zagalom_online %]</td>
+<td align="right">[% zagalom_avg %]</td>
+<td align="right">[% zagalom_cnt %]</td>
+<td align="right">[% zagalom_min %]</td>
 </tr>
 
 </tbody>

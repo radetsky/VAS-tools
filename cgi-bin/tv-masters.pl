@@ -201,7 +201,7 @@ foreach $pk ( keys %$list_positions ) {
 #}
 
 my $template_vars = { 
-	date_now     => date_now(), 
+	date_now     => date_now(),
 	warning_cnt  => get_count_of_calls('warning'), 
 	greeting_cnt => get_count_of_calls('greeting'),
 	mainmenu_cnt => get_count_of_calls('mainmenu'),
@@ -221,9 +221,38 @@ my $template_vars = {
 	cc04_rt => get_rt_by_state ('Agent/705'),
 	cc05_state => get_state_by_int ($agentsStatus->{'Agent/705'}), 
 	cc06_rt => get_rt_by_state ('Agent/705'),
-	
+	zagalom_cnt => get_count_of_calls(undef), 
+
+
 	warning_online => show_active_calls('warning'), 
 	greeting_online => show_active_calls('greeting'),
+  mainmenu_online => show_active_calls('mainmenu'),
+	waitdtmf_online => show_active_calls('waitdtmf'),
+	wait_expert1_online => show_active_calls('wait_expert1'),
+	wait_expert2_online => show_active_calls('wait_expert2'),
+  wait_for_cloud_online => show_active_calls('wait_for_cloud'),
+	zagalom_online => show_active_calls(undef),
+
+  warning_min => sprintf("%.2f",get_minutes ('warning')), 
+	warning_avg => get_average ('warning'), 
+  greeting_min => sprintf("%.2f",get_minutes ('greeting')),
+	greeting_avg => get_average ('greeting'),
+	mainmenu_min => sprintf("%.2f",get_minutes ('mainmenu')),
+	mainmenu_avg => get_average ('mainmenu'), 
+  waitdtmf_min => sprintf("%.2f",get_minutes ('waitdtmf')),
+	waitdtmf_avg => get_average ('waitdtmf'),
+	wait_expert1_min => sprintf("%.2f",get_minutes ('wait_expert1')),
+	wait_expert1_avg => get_average ('wait_expert1'),
+	wait_expert2_min => sprintf("%.2f",get_minutes ('wait_expert2')),
+	wait_expert2_avg => get_average ('wait_expert2'),
+	wait_for_cloud_min => sprintf("%.2f",get_minutes ('wait_for_cloud')),
+	wait_for_cloud_avg => get_average ('wait_for_cloud'),
+	zagalom_min => sprintf("%.2f",get_minutes (undef)), 
+	zagalom_avg => get_average (undef),
+
+
+	dtmfplus => get_dtmf_plus(), 
+	dtmfminus => get_dtmf_minus(),
 
 };
 
@@ -235,6 +264,111 @@ exit (0);
 # Subs list 
 #-----------------------------------------
 
+=item B<get_dtmf_plus> , B<get_dtmf_minus> 
+
+ Возвращают количество звонков, которые прошли waitdtmf и не прошли, соответственно. 
+
+=cut 
+
+sub get_dtmf_plus { 
+	
+	my $pos = 'waitdtmf'; 
+	my $sql = "select count(id) as dtmfplus from ivr.navigation_taps_logs where moment between ? and ? and previous_context=?"; 
+	my $sth = $dbh->prepare ($sql); 
+
+	eval { 
+		$sth->execute($fromdatetime,$tilldatetime,$pos); 
+	}; 
+	if ( $@ ) { 
+		warn $dbh->errstr; 
+		exit(-1);
+	}
+
+	my $res = $sth->fetchrow_hashref; 
+  unless ( defined ( $res ) ) { # No more rows. 
+	    return 0;
+	}
+	return $res->{'dtmfplus'};
+}
+
+sub get_dtmf_minus { 
+
+	my $dtmfplus = get_dtmf_plus(); 
+	my $warning =  get_count_of_calls('warning'); 
+
+	return $warning - $dtmfplus; 
+
+}
+
+=item B<get_minutes> , B<get_average> 
+
+ Возвращает минуты и среднее пребывание в секундах на разделе. 
+
+=cut 
+
+sub get_minutes { 
+	my $pos = shift; 
+	my $sql = undef; 
+
+  unless ( defined ( $pos ) ) { 
+		$sql = "select (sum(seconds)::float/60)::numeric as minutes from ivr.navigation_taps_logs where moment between ? and ?";
+	} else { 
+ 		$sql = "select (sum(seconds)::float/60)::numeric as minutes from ivr.navigation_taps_logs where current_context=? and moment between ? and ?";
+  }
+	my $sth = $dbh->prepare($sql);
+
+  eval {
+		unless ( defined ( $pos ) ) { 
+			$sth->execute($fromdatetime,$tilldatetime);
+		} else { 
+    	$sth->execute($pos,$fromdatetime,$tilldatetime);
+		}
+  };
+  if ( $@ ) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) { # No more rows. 
+    return 0;
+  }
+
+  return $res->{'minutes'};
+
+}
+
+sub get_average { 
+	my $pos = shift; 
+	my $sql = undef; 
+
+	unless ( defined ( $pos ) ) { 
+		$sql = 'select sum(seconds) as s1, count(seconds) as s2, (sum(seconds)::float/count(seconds)) as average from ivr.navigation_taps_logs where moment between ? and ?';
+	} else { 
+		$sql = 'select avg(seconds)::integer as average from ivr.navigation_taps_logs where current_context=? and moment between ? and ?';
+	} 
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+		unless ( defined ( $pos ) ) { 
+			$sth->execute($fromdatetime,$tilldatetime);
+		} else { 
+    	$sth->execute($pos,$fromdatetime,$tilldatetime);
+		}
+  };
+  if ( $@ ) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) { # No more rows. 
+    return 0;
+  }
+
+  return $res->{'average'};
+
+} 
 =item B<show_active_calls> 
 
  Возвращает строку, которую надо запихнуть в колонку "Online" указанной таблицы. 
@@ -244,8 +378,27 @@ exit (0);
 sub show_active_calls { 
 	my $pos = shift; 
 	my $str = '';
-	my $count = undef; 
+	my $count = 0; 
+	
+	my $zcount = undef; 
 
+	unless ( defined ( $pos ) ) { # Переданный параметр is undef, что означает тот факт, 
+																# что надо посчитать все текущие звонки по DNID без учета позиций. 
+		foreach my $cpos ( sort keys %{$cls} ) { 
+			foreach my $cdnid ( sort keys %{$cls->{$cpos}} ) { 
+				unless ( defined ( $zcount->{$cdnid} ) ) { 
+					$zcount->{$cdnid} = $cls->{$cpos}->{$cdnid};
+				} else { 
+					$zcount->{$cdnid} = $zcount->{$cdnid} + $cls->{$cpos}->{$cdnid};
+				} 
+			}
+		} 
+		foreach my $cdnid ( sort keys %$zcount ) { 
+			$count = $zcount->{$cdnid}; 
+			$str .= get_div_by_calls_and_dnid ( $count, $cdnid );
+  	}
+		return $str; 
+  }
 	foreach my $cdnid ( sort keys %{$cls->{$pos}} ) { 
 		$count = $cls->{$pos}->{$cdnid};  
 		$str .= get_div_by_calls_and_dnid ( $count, $cdnid );  
@@ -381,6 +534,10 @@ sub db_connect {
 sub get_count_of_calls { 
 	my $position_name = shift;
 
+	unless ( defined ( $position_name ) ) { 
+		$position_name = 'warning'; 
+	} 
+	
   my $sql = "select count(id) as cnt from ivr.navigation_taps_logs where current_context=? and moment between ? and ?";
   my $sth = $dbh->prepare($sql);
 
@@ -413,11 +570,15 @@ sub get_count_of_calls {
 sub get_str_position_from_pk { 
 	my $key = shift; 
   my ( $pos, $dnid ) = split (':',$key);
+	my ( $context, $extension, $priority ) = split (',',$pos); 
 	
 	foreach $key ( keys %{$conf->{'positions'}} ) { 
 		if ($conf->{'positions'}->{$key} eq $pos ) {
 			return ($key,$dnid);
 		}
+		if ($conf->{'positions'}->{$key} eq $context) {
+			return ($key,$dnid); 
+		} 
 	} 
 	return ('unknown',$dnid);  
 
