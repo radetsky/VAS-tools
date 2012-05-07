@@ -126,7 +126,7 @@ Min.
 <tr>
 <td>CC 01 ([% cc01_state %])</td>
 <td>[% cc01_rt %]</td>
-<td> </td>
+<td>[% cc01_online %]</td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -136,7 +136,7 @@ Min.
 <tr>
 <td>CC 02  ([% cc02_state %])</td>
 <td>[% cc02_rt %]</td>
-<td> </td>
+<td>[% cc02_online %] </td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -146,7 +146,7 @@ Min.
 <tr>
 <td>CC 03 ([% cc03_state %])</td>
 <td>[% cc3_rt %] </td>
-<td> </td>
+<td>[% cc03_online %] </td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -156,7 +156,7 @@ Min.
 <tr>
 <td>CC 04 ([% cc04_state %])</td>
 <td>[% cc04_rt %] </td>
-<td> </td>
+<td>[% cc04_online %] </td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -166,7 +166,7 @@ Min.
 <tr>
 <td>CC 05 ([% cc05_state %])</td>
 <td>[% cc05_rt %] </td>
-<td> </td>
+<td>[% cc05_online %]</td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>
@@ -176,7 +176,7 @@ Min.
 <tr>
 <td>CC 06 ([% cc06_state %])</td>
 <td>[% cc06_rt %] </td>
-<td> </td>
+<td>[% cc06_online %]</td>
 <td align="right">0</td>
 <td align="right">0</td>
 <td align="right">0</td>

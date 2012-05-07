@@ -31,7 +31,7 @@ use Config::General;
 use Template; 
 
 my $cgi = CGI->new;
-print $cgi->header(-content-type => 'text/html',
+print $cgi->header(-type => 'text/html',
                   -charset => 'UTF-8');
 									
 my $template = Template->new( {
@@ -87,6 +87,7 @@ unless ( defined ( $sent ) ) {
 my $answer = undef; 
 my $agentsStatus = undef;
 my $agentsPenalty = undef; 
+my $agentsTalks = undef; 
 
 while ( $answer = $manager->receive_answer ) { 
 #warn Dumper ( $answer );
@@ -168,6 +169,27 @@ while ( $answer = $manager->receive_answer ) {
 					}
 				}
 			}
+		  # Посмотрим кто разговаривает с агентами 
+			if ( defined ( $answer->{'Accountcode'} ) ) { 
+				if ( defined ( $answer->{'BridgedChannel'} ) ) { 
+					if ( $answer->{'BridgedChannel'} =~ /^Agent/ ) { 
+						my $agentChannel = $answer->{'BridgedChannel'};
+						if ( $answer->{'Accountcode'} eq '' ) { 
+							next;
+						} 
+						unless ( defined ( $answer->{'Accountcode'} ) ) { 
+							next; 
+						} 
+						my $accountCode = $answer->{'Accountcode'}; 
+						unless ( defined ( $agentsTalks->{$agentChannel}->{$accountCode} ) ) { 
+							$agentsTalks->{$agentChannel}->{$accountCode} = 1; 
+						} else { 
+							$agentsTalks->{$agentChannel}->{$accountCode} = {$agentChannel}->{$accountCode} + 1;
+						} 
+					}
+				}
+			}
+			
     }
   }
 }
@@ -213,16 +235,29 @@ my $template_vars = {
   wait_for_cloud_cnt => get_count_of_calls ('wait_for_cloud'),
 	cc01_state => get_state_by_int ($agentsStatus->{'Agent/701'}), 
 	cc01_rt => get_rt_by_state ('Agent/701'),
+	cc01_online => show_active_agents_calls('Agent/701'), 
+
 	cc02_state => get_state_by_int ($agentsStatus->{'Agent/702'}), 
 	cc02_rt => get_rt_by_state ('Agent/702'),
+  cc02_online => show_active_agents_calls('Agent/702'),
+	
 	cc03_state => get_state_by_int ($agentsStatus->{'Agent/703'}), 
 	cc03_rt => get_rt_by_state ('Agent/704'),
-	cc04_state => get_state_by_int ($agentsStatus->{'Agent/705'}), 
-	cc04_rt => get_rt_by_state ('Agent/705'),
-	cc05_state => get_state_by_int ($agentsStatus->{'Agent/705'}), 
-	cc06_rt => get_rt_by_state ('Agent/705'),
-	zagalom_cnt => get_count_of_calls(undef), 
+	cc03_online => show_active_agents_calls('Agent/703'),
 
+	cc04_state => get_state_by_int ($agentsStatus->{'Agent/704'}), 
+	cc04_rt => get_rt_by_state ('Agent/704'),
+	cc04_online => show_active_agents_calls('Agent/704'),
+	
+	cc05_state => get_state_by_int ($agentsStatus->{'Agent/705'}), 
+	cc05_rt => get_rt_by_state ('Agent/705'),
+	cc05_online => show_active_agents_calls('Agent/705'),
+	
+	cc06_state => get_state_by_int ($agentsStatus->{'Agent/706'}), 
+	cc06_rt => get_rt_by_state ('Agent/706'),
+	cc06_online => show_active_agents_calls('Agent/706'),
+
+	zagalom_cnt => get_count_of_calls(undef), 
 
 	warning_online => show_active_calls('warning'), 
 	greeting_online => show_active_calls('greeting'),
@@ -248,8 +283,7 @@ my $template_vars = {
 	wait_for_cloud_min => sprintf("%.2f",get_minutes ('wait_for_cloud')),
 	wait_for_cloud_avg => get_average ('wait_for_cloud'),
 	zagalom_min => sprintf("%.2f",get_minutes (undef)), 
-	zagalom_avg => get_average (undef),
-
+	zagalom_avg => sprintf("%.2f",get_average (undef)),
 
 	dtmfplus => get_dtmf_plus(), 
 	dtmfminus => get_dtmf_minus(),
@@ -263,6 +297,8 @@ exit (0);
 #-----------------------------------------
 # Subs list 
 #-----------------------------------------
+
+
 
 =item B<get_dtmf_plus> , B<get_dtmf_minus> 
 
@@ -368,7 +404,25 @@ sub get_average {
 
   return $res->{'average'};
 
-} 
+}
+=item B<show_active_agent_calls> 
+
+ Возвращает строку, которую надо хапихнуть в колонку "Online" напротив оператора 
+
+=cut 
+
+sub show_active_agents_calls { 
+	my $agent = shift; 
+	my $str = ''; 
+	my $count = 0; 
+
+  foreach my $cdnid ( sort keys %{$agentsTalks->{$agent}} ) { 
+			$count = $agentsTalks->{$agent}->{$cdnid}; 
+			$str .= get_div_by_calls_and_dnid ( $count, $cdnid );
+  }
+	return $str; 
+}
+
 =item B<show_active_calls> 
 
  Возвращает строку, которую надо запихнуть в колонку "Online" указанной таблицы. 
