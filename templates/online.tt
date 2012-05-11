@@ -1,10 +1,11 @@
 <p align="center">
-IVR realtime statistic Period
-<select>
+IVR realtime statistic
+<!-- Period
+ <select>
   <option value="07">00:00-07:00:00</option>
 	<option value="70">07:00:01-23:59:59</option>
 </select>
-
+-->
 <br> 
 [% date_now %]  
 </p>
@@ -127,9 +128,9 @@ Min.
 <td>CC 01 ([% cc01_state %])</td>
 <td>[% cc01_rt %]</td>
 <td>[% cc01_online %]</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% cc01_avg %]</td>
+<td align="right">[% cc01_cnt %]</td>
+<td align="right">[% cc01_min %]</td>
 </tr>
 
 <!-- Строка -->
@@ -137,9 +138,9 @@ Min.
 <td>CC 02  ([% cc02_state %])</td>
 <td>[% cc02_rt %]</td>
 <td>[% cc02_online %] </td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% cc02_avg %]</td>
+<td align="right">[% cc02_cnt %]</td>
+<td align="right">[% cc02_min %]</td>
 </tr>
 
 <!-- Строка -->
@@ -147,9 +148,9 @@ Min.
 <td>CC 03 ([% cc03_state %])</td>
 <td>[% cc3_rt %] </td>
 <td>[% cc03_online %] </td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% cc03_avg %]</td>
+<td align="right">[% cc03_cnt %]</td>
+<td align="right">[% cc03_min %]</td>
 </tr>
 
 <!-- Строка -->
@@ -157,9 +158,9 @@ Min.
 <td>CC 04 ([% cc04_state %])</td>
 <td>[% cc04_rt %] </td>
 <td>[% cc04_online %] </td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% cc04_avg %]</td>
+<td align="right">[% cc04_cnt %]</td>
+<td align="right">[% cc04_min %]</td>
 </tr>
 
 <!-- Строка -->
@@ -167,12 +168,12 @@ Min.
 <td>CC 05 ([% cc05_state %])</td>
 <td>[% cc05_rt %] </td>
 <td>[% cc05_online %]</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
+<td align="right">[% cc05_avg %]</td>
+<td align="right">[% cc05_cnt %]</td>
+<td align="right">[% cc05_min %]</td>
 </tr>
 
-<!-- Строка -->
+<!-- Строка 
 <tr>
 <td>CC 06 ([% cc06_state %])</td>
 <td>[% cc06_rt %] </td>
@@ -182,6 +183,7 @@ Min.
 <td align="right">0</td>
 </tr>
 
+--> 
 <!-- Строка -->
 <tr>
 <td>DTMF (-[% dtmfminus %]/+[% dtmfplus %])</td>

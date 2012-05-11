@@ -1,0 +1,192 @@
+<?php
+// $Id: $
+
+include_once 'vesmedia.help.php';
+include_once 'vesmedia.perm.php';
+
+function vesmedia_menu() { 
+
+ $items = array(); 
+
+ $items['vesmedia/online'] = array(
+    'title' => t('VES-Media online'),
+    'page callback' => 'vesmedia_online',
+    'access arguments' =>  array('access vesmedia content'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+
+  $items['vesmedia/online/first'] = array ( 
+		'title' => t('00-07'), 
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+	);
+	$items['vesmedia/online/second'] = array ( 
+		'title' => t('07-24'), 
+		'page callback' => 'vesmedia_online_0724',
+		'weight' => 2, 
+		'access arguments' => array('access vesmedia content'), 
+		'type' => MENU_LOCAL_TASK,
+	);
+
+	$items['vesmedia/offline'] = array ( 
+		'title' => t('VES-Media: offline'), 
+		'page callback' => 'vesmedia_offline', 
+		'access arguments' => array ('access vesmedia content'),
+		'type' => MENU_NORMAL_ITEM,
+	);
+
+	$items['vesmedia/opline'] = array ( 
+		'title' => t('VES-Media: opline'), 
+		'page callback' => 'vesmedia_opline',
+		'access arguments' => array ('access vesmedia content'),
+		'type' => MENU_NORMAL_ITEM,
+	); 
+  
+	$items['vesmedia/opline/first'] = array ( 
+		'title' => t('00-07'), 
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+	); 
+	$items['vesmedia/opline/second'] = array ( 
+		'title' => t('07-24'), 
+    'page callback' => 'vesmedia_opline_0724',
+    'weight' => 2,
+    'access arguments' => array('access vesmedia content'),
+    'type' => MENU_LOCAL_TASK,
+	); 
+	$items['vesmedia/offoperstat'] = array ( 
+		'title' => t('VES-Media: off oper '), 
+		'page callback' => 'vesmedia_offoper', 
+		'access arguments' => array ('access vesmedia content'),
+		'type' => MENU_NORMAL_ITEM,
+	);
+//   drupal_set_message(var_export($items,TRUE));  
+   return $items;
+}
+
+function vesmedia_online () {
+  $js = "<div id=\"get_stat\"></div>
+<script type=\"text/javascript\" src=/sites/all/modules/jquery_ui/jquery.ui/jquery-1.2.6.js></script>
+<script type=\"text/javascript\">
+<!-- 
+  get_stat(); 
+
+  function get_stat() { 
+    $.get(\"/cgi-bin/tv-masters.pl\",
+    { queue: \"TV-masters\",
+      fromtime: \"00:00\",
+      tilltime: \"06:59\",
+    },function(data) { 
+      $('#get_stat').html(data);
+    },\"html\");
+    setTimeout(\"get_stat()\",2000);  
+  }
+-->
+</script>";
+ 
+  return $js;
+}
+
+function vesmedia_online_0724() {
+  $js = "<div id=\"get_stat\"></div>
+<script type=\"text/javascript\" src=/sites/all/modules/jquery_ui/jquery.ui/jquery-1.2.6.js></script>
+<script type=\"text/javascript\">
+<!-- 
+  get_stat(); 
+
+  function get_stat() { 
+    $.get(\"/cgi-bin/tv-masters.pl\",
+    { queue: \"TV-masters\",
+      fromtime: \"07:00\",
+      tilltime: \"23:59\",
+    },function(data) { 
+      $('#get_stat').html(data);
+    },\"html\");
+    setTimeout(\"get_stat()\",2000);  
+  }
+-->
+</script>";
+ 
+  return $js;
+ 
+}
+
+
+function vesmedia_offline () { 
+  jquery_ui_add(array('ui.datepicker'));
+  drupal_add_css(JQUERY_UI_PATH . '/themes/default/ui.datepicker.css');
+ 
+  $sincedate = isset($_REQUEST['sincedate']) ? $_REQUEST['sincedate'] : NULL;
+  $sincetime = isset($_REQUEST['sincetime']) ? $_REQUEST['sincetime'] : '00:00';
+  $tilldate = isset($_REQUEST['tilldate']) ? $_REQUEST['tilldate'] : NULL;
+  $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '00:00';
+  $submitted = isset($_REQUEST['submitted']);
+  $out = '';
+  $out .=
+    '<script type="text/javascript">
+      $(function() {
+        $.datepicker.setDefaults({ dateFormat: "yy-mm-dd" });
+        $(".datepicker").datepicker();
+      });
+    </script>'.
+    '<form method="post" action="'.url('vesmedia/offline').'" id="vesmedia_offline_form">'.
+    '<p style="text-align:center">'.
+      t('Since').'&nbsp;'.
+      '<input type="text" name="sincedate" size="10" maxlength="10" class="datepicker" value="'.$sincedate.'" />'.
+      '<input type="text" name="sincetime" size="5" maxlength="5" class="timepicker" value="'.$sincetime.'" />'.
+      '&nbsp; '.
+      t('Till').'&nbsp;'.
+      '<input type="text" name="tilldate" size="10" maxlength="10" class="datepicker" value="'.$tilldate.'" />'.
+      '<input type="text" name="tilltime" size="5" maxlength="5" class="timepicker" value="'.$tilltime.'" />'.
+      '&nbsp; '.
+      '<input type="submit" name="submitted" value="'.t('Show').'" />'.
+    '</p>'.
+    '</form>';
+	if ($submitted) { 
+		$out .= vesmedia_offline_getdata($sincedate,$sincetime,$tilldate,$tilltime); 
+	}
+	return $out; 
+}
+function vesmedia_offline_getdata($sincedate,$sincetime,$tilldate,$tilltime) {
+	$sincedate = htmlspecialchars($sincedate); 
+	$sincetime = htmlspecialchars($sincetime);
+	$tilldate =  htmlspecialchars($tilldate); 
+	$tilltime =  htmlspecialchars($tilltime); 
+ 
+  $js = "<div id=\"get_stat\"></div>
+<script type=\"text/javascript\" src=/sites/all/modules/jquery_ui/jquery.ui/jquery-1.2.6.js></script>
+<script type=\"text/javascript\">
+<!-- 
+  get_stat(); 
+
+  function get_stat() { 
+    $.get(\"/cgi-bin/tv-masters.pl\",
+    { queue: \"TV-masters\",
+			fromdate: \"$sincedate\",
+      fromtime: \"$sincetime\",
+			tilldate: \"$tilldate\",
+      tilltime: \"$tilltime\",
+    },function(data) { 
+      $('#get_stat').html(data);
+    },\"html\");
+    setTimeout(\"get_stat()\",2000);  
+  }
+-->
+</script>";
+ return $js;
+
+}
+function vesmedia_opline () { 
+
+	return ''; 
+}
+
+function vesmedia_opline_0724 () { 
+	
+	return ''; 
+}
+
+function vesmedia_offoper () { 
+
+	return ''; 
+}
+ 
+

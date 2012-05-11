@@ -257,6 +257,30 @@ my $template_vars = {
 	cc06_rt => get_rt_by_state ('Agent/706'),
 	cc06_online => show_active_agents_calls('Agent/706'),
 
+	cc01_avg => get_avg_seconds_complete_talks ('Agent/701'),
+  cc01_cnt => get_count_complete_talks  ('Agent/701'),
+  cc01_min => get_minutes_complete_talks  ('Agent/701'),
+
+	cc02_avg => get_avg_seconds_complete_talks ('Agent/702'),
+  cc02_cnt => get_count_complete_talks  ('Agent/702'),
+  cc02_min => get_minutes_complete_talks  ('Agent/702'),
+
+	cc03_avg => get_avg_seconds_complete_talks ('Agent/703'),
+  cc03_cnt => get_count_complete_talks  ('Agent/703'),
+  cc03_min => get_minutes_complete_talks  ('Agent/703'),
+
+	cc04_avg => get_avg_seconds_complete_talks ('Agent/704'),
+  cc04_cnt => get_count_complete_talks  ('Agent/704'),
+  cc04_min => get_minutes_complete_talks  ('Agent/704'),
+
+	cc05_avg => get_avg_seconds_complete_talks ('Agent/705'),
+  cc05_cnt => get_count_complete_talks  ('Agent/705'),
+  cc05_min => get_minutes_complete_talks  ('Agent/705'),
+	
+  cc06_avg => get_avg_seconds_complete_talks ('Agent/706'),
+  cc06_cnt => get_count_complete_talks  ('Agent/706'),
+  cc06_min => get_minutes_complete_talks  ('Agent/706'),
+
 	zagalom_cnt => get_count_of_calls(undef), 
 
 	warning_online => show_active_calls('warning'), 
@@ -298,7 +322,83 @@ exit (0);
 # Subs list 
 #-----------------------------------------
 
+=item B<get_minutes_complete_talks>
 
+  Возвращает количество минут проведенных в разговорах оператором
+
+=cut 
+
+sub get_minutes_complete_talks { 
+  my $agentid = shift;
+  my $sql = "select  (sum(calltime)::float/60)::numeric as minutes from public.queue_parsed where agentid=? and status like 'COMPLETE%' and time between ? and ?";
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+    $sth->execute ($agentid, $fromdatetime, $tilldatetime);
+  };
+  if ($@) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) {
+    return 0;
+  }
+  return $res->{'minutes'};
+
+}
+
+=item B<get_avg_seconds_complete_talks>
+
+	Возвращает среднюю продолжительность в секундах  разговора с оператором 
+
+=cut 
+
+sub get_avg_seconds_complete_talks { 
+
+  my $agentid = shift;
+  my $sql = "select avg(calltime) as average from public.queue_parsed where agentid=? and status like 'COMPLETE%' and time between ? and ?";
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+    $sth->execute ($agentid, $fromdatetime, $tilldatetime);
+  };
+  if ($@) {
+    warn $dbh->errstr;
+    exit(-1);
+  } 
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) {
+    return 0;
+  }
+  return $res->{'average'};
+
+} 
+
+=item B<get_count_complete_talks> 
+
+ Возвращает количество завершенных разговоров с указанным оператором 
+
+=cut 
+
+sub get_count_complete_talks { 
+	my $agentid = shift; 
+	my $sql = "select count(id) as complete from public.queue_parsed where agentid=? and status like 'COMPLETE%' and time between ? and ?"; 
+	my $sth = $dbh->prepare($sql);
+
+	eval {
+		$sth->execute ($agentid, $fromdatetime, $tilldatetime); 
+	}; 
+	if ($@) { 
+		warn $dbh->errstr; 
+		exit(-1);
+	}
+	my $res = $sth->fetchrow_hashref; 
+	unless ( defined ( $res ) ) { 
+		return 0; 
+	} 
+	return $res->{'complete'}; 
+} 
 
 =item B<get_dtmf_plus> , B<get_dtmf_minus> 
 

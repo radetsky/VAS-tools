@@ -1,0 +1,8 @@
+; $Id: $
+name = VES-Media 
+description = Модуль для контент-провайдера VES-Media
+core = 6.x 
+package = VES-Media
+;dependencies[] = netsds_connect
+
+
