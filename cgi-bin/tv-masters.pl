@@ -39,6 +39,10 @@ my $template = Template->new( {
 	INTERPOLATE => 1,
 		  } ) || die "$Template::ERROR\n";
 
+my $report    = $cgi->param('report'); 
+unless ( defined  ( $report ) ) { 
+	$report = 'ivr'; 
+} 
 my $queuename = $cgi->param('queue');
 my $fromtime = $cgi->param('fromtime');
 my $tilltime = $cgi->param('tilltime'); 
@@ -99,6 +103,13 @@ while ( $answer = $manager->receive_answer ) {
 					$agentsStatus->{$agentname} = $answer->{'Status'};
 					$agentsPenalty->{$agentname} = $answer->{'Penalty'}; 
 			  	#warn Dumper ($answer); 
+				}
+			}
+			if ($report eq 'agentas') { 
+				if ( defined ( $answer->{'Name'} ) ) {
+					 my $agentname = $answer->{'Name'};
+					 $agentsStatus->{$agentname} = $answer->{'Status'};
+					 $agentsPenalty->{$agentname} = $answer->{'Penalty'};
 				}
 			}
 		}
@@ -222,6 +233,8 @@ foreach $pk ( keys %$list_positions ) {
 #	print $key . " : " . get_count_of_calls($key) . "<br>"; 
 #}
 
+if ($report eq 'ivr') { 
+
 my $template_vars = { 
 	date_now     => date_now(),
 	warning_cnt  => get_count_of_calls('warning'), 
@@ -315,13 +328,61 @@ my $template_vars = {
 };
 
 $template->process('online.tt',$template_vars) || die $template->error() . "\n";
+};
+
+if ( $report eq 'agentas') { 
+	my @agents1 = (); 
+	my @agents2 = (); 
+	my @agents3 = (); 
+	for (my $i = 100; $i < 400; $i++) { 
+		push @agents1,"Agent/".$i;
+	}
+  for (my $i = 400; $i < 700; $i++) {
+	    push @agents2,"Agent/".$i;
+	}
+  for (my $i = 700; $i < 900; $i++) {
+	    push @agents3,"Agent/".$i;
+	}
+
+	my $template_vars = {
+  	date_now     => date_now(),
+		agents1			 => \@agents1,
+		agents2			 => \@agents2,
+		agents3			 => \@agents3,
+		agent_state  => sub { return agent_state(@_); },  
+		agent_penalty => sub { return agent_penalty(@_); },
+		agent_online => sub { return show_active_agents_calls(@_); },
+		agent_avg => sub { return sprintf("%.2f",get_avg_seconds_complete_talks (@_)); },
+		agent_cnt => sub { return get_count_complete_talks (@_); }, 
+		agent_min => sub { return sprintf("%.2f",get_minutes_complete_talks (@_)); },
+
+	};
+	$template->process('agentas.tt',$template_vars) || die $template->error() . "\n";
+
+} 
 
 exit (0);
 
 #-----------------------------------------
 # Subs list 
 #-----------------------------------------
+sub agent_penalty { 
+	my $agentid = shift; 
 
+	unless ( defined ( $agentsPenalty->{$agentid} ) ) { 
+		return ''; 
+	} 
+
+	return $agentsPenalty->{$agentid}; 
+
+}
+sub agent_state { 
+	my $agentid = shift; 
+	unless ( defined ( $agentsStatus->{$agentid} ) ) { 
+		return 'Unknown.'; 
+	} 
+	return get_state_by_int($agentsStatus->{$agentid} ); 
+}
 =item B<get_minutes_complete_talks>
 
   Возвращает количество минут проведенных в разговорах оператором
@@ -600,6 +661,10 @@ sub get_rt_by_state {
 
 sub get_state_by_int { 
 	my $iState = shift; 
+
+	unless ( defined ( $iState) ) { 
+		return "undef"; 
+	} 
 
 	return "NotInUse" if $iState == 1; 
 	return "In Use" if $iState == 2; 
