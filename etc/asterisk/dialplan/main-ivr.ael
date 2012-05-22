@@ -57,7 +57,14 @@ context ivr-tv-kz-expert1 {
 
     ENTER_SECONDS=${CDR(billsec)};
 		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,wait_expert1,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
-		goto ivr-tv-kz-cloud|s|1; };
+		goto ivr-tv-kz-cloud|s|1; 
+	};
+  h => {
+    EXIT_SECONDS=${CDR(billsec)};
+    SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+    NoOp("Used ${SECONDS} before hangup");
+    AGI(ivrhist_update_seconds.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},${SECONDS});
+  }
 };
 
 context ivr-tv-kz-expert2 {
@@ -91,45 +98,57 @@ context ivr-tv-kz-expert2 {
 		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,wait_expert2,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
 		goto ivr-tv-kz-cloud|s|1; 
 	};
+	h => { 
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+		NoOp("Used ${SECONDS} before hangup"); 
+		AGI(ivrhist_update_seconds.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},${SECONDS});
+	}
 };
 
 context ivr-tv-kz-cloud {
 	s => {
 		  QUEUE_MAX_PENALTY=0;
 	q1:
-		  QUEUE_MAX_PENALTY=${QUEUE_MAX_PENALTY}+1;
 	    PlayBack(ves-media/custom/wait_a_first);
-	    Queue(TV-Masters,rtTn,,,15);
-			if (${QUEUESTATUS}==JOINEMPTY) { 
-				goto cc; 
-			} 
+	p1:
+			QUEUE_MAX_PENALTY=${QUEUE_MAX_PENALTY}+1;
+	    Queue(TV-Masters,rtTn,,,30);
+			NoOp(QUEUESTATUS=${QUEUESTATUS}); 
+			if (${QUEUESTATUS}==JOINEMPTY) {
+				if (${QUEUE_MAX_PENALTY} >= 30) { 
+					Dial(SIP/9800,30,rtT);
+					if (${DIALSTATUS}!=ANSWER) {
+						Wait(30); 
+					}
+				} else { 
+					goto p1; 
+				}
+			}
+			
 			QUEUE_MAX_PENALTY=${QUEUE_MAX_PENALTY}+1;
     	PlayBack(ves-media/custom/all_masters_busy);
-	    Queue(TV-Masters,rtTn,,,15);
+	    Queue(TV-Masters,rtTn,,,180);
+			NoOp(QUEUESTATUS=${QUEUESTATUS}); 
 			if (${QUEUESTATUS}==JOINEMPTY) {
-				goto cc; 
+				//Dial(SIP/ves-media/0445380338,120,rtT);
+				Dial(SIP/9800,180,rtT);
+				if (${DIALSTATUS}!=ANSWER) {
+					Wait(180);
+				}
 			} 
-	    AGI(navigation_taps_save.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,ivr-tv-cloud,ivr-tv-kz-cloud);
-			
-			if (${CDR(billsec)} > 180) { 
-				goto l1; 
-			} 
-			goto q1;
-	cc: 
-			NoOp(billsec=${CDR(billsec)});
-		  if (${CDR(billsec)} > 180) {
-				goto l1; 
-			}
-			Dial(SIP/ves-media/0445380338,120,tT);
-			if ("${DIALSTATUS}" != "ANSWER") { 
-				PlayBack(ves-media/custom/all_masters_busy);
-				goto q1; 
-			}
-			Hangup(); 
 	l1:
 			Playback(ves-media/custom/call_later);
 			Hangup();
 	};
+		h => { 
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+		NoOp("Used ${SECONDS} before hangup"); 
+		AGI(ivrhist_update_seconds.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},${SECONDS});
+	}
+
+
 };
 
 context ivr-tv-kz {
@@ -141,7 +160,8 @@ context ivr-tv-kz {
 		Set(CUSTOM_DST=ivr-tv-kz);
 		System (/bin/mkdir -p /var/spool/asterisk/monitor/${STRFTIME(${EPOCH},,%Y/%m/%d/)});
 		Set(MONITOR_FILENAME=${STRFTIME(${EPOCH},,%Y/%m/%d/%H-%M-%S)}_${CALLERID(num)});
-		Set(CDR(userfield)=${MONITOR_FILENAME}.wav); 
+		Set(CDR(userfield)=${MONITOR_FILENAME}.wav);
+		&normalize_callerid_kz();
 		MixMonitor(${MONITOR_FILENAME}.wav); 
 		Answer();
 		Wait(0.5);
@@ -208,7 +228,15 @@ context ivr-tv-kz {
 		
 		ENTER_SECONDS=${CDR(billsec)};
 		AGI(ivrhist.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},t,waitdtmf,wait_for_cloud,${PREVIOUS_ID},${SECONDS});
-		goto ivr-tv-kz-cloud|s|1; };
+		goto ivr-tv-kz-cloud|s|1; 
+	};
+	h => { 
+		EXIT_SECONDS=${CDR(billsec)};
+		SECONDS = ${EXIT_SECONDS} - ${ENTER_SECONDS};
+		NoOp("Used ${SECONDS} before hangup"); 
+		AGI(ivrhist_update_seconds.php,${CDR(start)},${CDR(src)},${CUSTOM_DST},${SECONDS});
+	}
+
 };
 
 

@@ -125,7 +125,7 @@ Min.
 
 <!-- Строка --> 
 <tr>
-<td>CC 01 ([% cc01_state %])</td>
+<td>CC 01 ([% cc01_state %]) [% cc01_callerid %]</td>
 <td>[% cc01_rt %]</td>
 <td>[% cc01_online %]</td>
 <td align="right">[% cc01_avg %]</td>
@@ -135,7 +135,7 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 02  ([% cc02_state %])</td>
+<td>CC 02  ([% cc02_state %]) [% cc02_callerid %]</td>
 <td>[% cc02_rt %]</td>
 <td>[% cc02_online %] </td>
 <td align="right">[% cc02_avg %]</td>
@@ -145,8 +145,8 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 03 ([% cc03_state %])</td>
-<td>[% cc3_rt %] </td>
+<td>CC 03 ([% cc03_state %]) [% cc03_callerid %]</td>
+<td>[% cc03_rt %] </td>
 <td>[% cc03_online %] </td>
 <td align="right">[% cc03_avg %]</td>
 <td align="right">[% cc03_cnt %]</td>
@@ -155,7 +155,7 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 04 ([% cc04_state %])</td>
+<td>CC 04 ([% cc04_state %]) [% cc04_callerid %]</td>
 <td>[% cc04_rt %] </td>
 <td>[% cc04_online %] </td>
 <td align="right">[% cc04_avg %]</td>
@@ -165,7 +165,7 @@ Min.
 
 <!-- Строка -->
 <tr>
-<td>CC 05 ([% cc05_state %])</td>
+<td>CC 05 ([% cc05_state %]) [% cc05_callerid %]</td>
 <td>[% cc05_rt %] </td>
 <td>[% cc05_online %]</td>
 <td align="right">[% cc05_avg %]</td>
@@ -219,19 +219,19 @@ Min.
 <td width="20%">For last 30 min.</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
-<td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td>
+<td align="right">avg</td><td align="right">[% kz_cnt_30 %]</td><td align="right">min</td><td align="right">avg/min</td>
 </tr>
 <tr>
 <td width="20%">For last 20 min.</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
-<td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td>
+<td align="right">avg</td><td align="right">[% kz_cnt_20 %]</td><td align="right">min</td><td align="right">avg/min</td>
 </tr>
 <tr>
 <td width="20%">For last 10 min.</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
-<td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td>
+<td align="right">avg</td><td align="right">[% kz_cnt_10 %]</td><td align="right">min</td><td align="right">avg/min</td>
 </tr>
 </tbody>
 <thead>
@@ -239,7 +239,7 @@ Min.
 <th width="20%">Summary</th><th style="border-color: green; border-style: dotted;">&nbsp;</th>
 <th>avg</th><th>cnt</th><th>min</th><th>avg/min</th><th style="border-color: green; border-style: dotted;">&nbsp;</th>
 <th>avg</th><th>cnt</th><th>min</th><th>avg/min</th><th style="border-color: green; border-style: dotted;">&nbsp;</th>
-<th>avg</th><th>cnt</th><th>min</th><th>avg/min</th>
+<th>avg</th><th>[% kz_cnt_zagalom %]</th><th>min</th><th>avg/min</th>
 </tr>
 </thead>
 </table>

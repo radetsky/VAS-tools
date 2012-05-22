@@ -52,7 +52,7 @@ function vesmedia_menu() {
     'access arguments' => array('access vesmedia content'),
     'type' => MENU_LOCAL_TASK,
 	); 
-	$items['vesmedia/offoperstat'] = array ( 
+	$items['vesmedia/offoper'] = array ( 
 		'title' => t('VES-Media: off oper '), 
 		'page callback' => 'vesmedia_offoper', 
 		'access arguments' => array ('access vesmedia content'),
@@ -119,6 +119,14 @@ function vesmedia_offline () {
   $tilldate = isset($_REQUEST['tilldate']) ? $_REQUEST['tilldate'] : NULL;
   $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '00:00';
   $submitted = isset($_REQUEST['submitted']);
+
+	if ($sincedate == NULL) { 
+		$sincedate = strftime ("%Y-%m-%d");
+	}
+	if ($tilldate == NULL) { 
+		$tilldate = strftime ("%Y-%m-%d",time()+86400);
+	}
+
   $out = '';
   $out .=
     '<script type="text/javascript">
@@ -152,7 +160,6 @@ function vesmedia_offline_getdata($sincedate,$sincetime,$tilldate,$tilltime) {
 	$tilltime =  htmlspecialchars($tilltime); 
  
   $js = "<div id=\"get_stat\"></div>
-<script type=\"text/javascript\" src=/sites/all/modules/jquery_ui/jquery.ui/jquery-1.2.6.js></script>
 <script type=\"text/javascript\">
 <!-- 
   get_stat(); 
@@ -175,18 +182,118 @@ function vesmedia_offline_getdata($sincedate,$sincetime,$tilldate,$tilltime) {
 
 }
 function vesmedia_opline () { 
+  $js = "<div id=\"get_stat\"></div>
+<script type=\"text/javascript\" src=/sites/all/modules/jquery_ui/jquery.ui/jquery-1.2.6.js></script>
+<script type=\"text/javascript\">
+<!-- 
+  get_stat(); 
 
-	return ''; 
+  function get_stat() { 
+    $.get(\"/cgi-bin/tv-masters.pl\",
+    { report: \"agentas\",
+      fromtime: \"00:00\",
+      tilltime: \"06:59\",
+    },function(data) { 
+      $('#get_stat').html(data);
+    },\"html\");
+    setTimeout(\"get_stat()\",2000);  
+  }
+-->
+</script>";
+  return $js;
 }
 
 function vesmedia_opline_0724 () { 
-	
-	return ''; 
+	$js = "<div id=\"get_stat\"></div>
+<script type=\"text/javascript\" src=/sites/all/modules/jquery_ui/jquery.ui/jquery-1.2.6.js></script>
+<script type=\"text/javascript\">
+<!-- 
+  get_stat(); 
+
+  function get_stat() { 
+    $.get(\"/cgi-bin/tv-masters.pl\",
+    { report: \"agentas\",
+      fromtime: \"07:00\",
+      tilltime: \"23:59\",
+    },function(data) { 
+      $('#get_stat').html(data);
+    },\"html\");
+    setTimeout(\"get_stat()\",2000);  
+  }
+-->
+</script>";
+  return $js;
+ 
 }
 
 function vesmedia_offoper () { 
-
-	return ''; 
-}
+  jquery_ui_add(array('ui.datepicker'));
+  drupal_add_css(JQUERY_UI_PATH . '/themes/default/ui.datepicker.css');
  
+  $sincedate = isset($_REQUEST['sincedate']) ? $_REQUEST['sincedate'] : NULL;
+  $sincetime = isset($_REQUEST['sincetime']) ? $_REQUEST['sincetime'] : '00:00';
+  $tilldate = isset($_REQUEST['tilldate']) ? $_REQUEST['tilldate'] : NULL;
+  $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '00:00';
+  $submitted = isset($_REQUEST['submitted']);
+  if ($sincedate == NULL) {
+    $sincedate = strftime ("%Y-%m-%d");
+  }
+  if ($tilldate == NULL) {
+    $tilldate = strftime ("%Y-%m-%d",time()+86400);
+  }
 
+  $out = '';
+  $out .=
+    '<script type="text/javascript">
+      $(function() {
+        $.datepicker.setDefaults({ dateFormat: "yy-mm-dd" });
+        $(".datepicker").datepicker();
+      });
+    </script>'.
+    '<form method="post" action="'.url('vesmedia/offoper').'" id="vesmedia_offoper_form">'.
+    '<p style="text-align:center">'.
+      t('Since').'&nbsp;'.
+      '<input type="text" name="sincedate" size="10" maxlength="10" class="datepicker" value="'.$sincedate.'" />'.
+      '<input type="text" name="sincetime" size="5" maxlength="5" class="timepicker" value="'.$sincetime.'" />'.
+      '&nbsp; '.
+      t('Till').'&nbsp;'.
+      '<input type="text" name="tilldate" size="10" maxlength="10" class="datepicker" value="'.$tilldate.'" />'.
+      '<input type="text" name="tilltime" size="5" maxlength="5" class="timepicker" value="'.$tilltime.'" />'.
+      '&nbsp; '.
+      '<input type="submit" name="submitted" value="'.t('Show').'" />'.
+    '</p>'.
+    '</form>';
+	if ($submitted) { 
+		$out .= vesmedia_offoper_getdata($sincedate,$sincetime,$tilldate,$tilltime); 
+	}
+	return $out; 
+}
+function vesmedia_offoper_getdata($sincedate,$sincetime,$tilldate,$tilltime) { 
+
+	$sincedate = htmlspecialchars($sincedate); 
+	$sincetime = htmlspecialchars($sincetime);
+	$tilldate =  htmlspecialchars($tilldate); 
+	$tilltime =  htmlspecialchars($tilltime); 
+ 
+  $js = "<div id=\"get_stat\"></div>
+<script type=\"text/javascript\">
+<!-- 
+  get_stat(); 
+
+  function get_stat() { 
+    $.get(\"/cgi-bin/tv-masters.pl\",
+    { report: \"agentas\",
+			fromdate: \"$sincedate\",
+      fromtime: \"$sincetime\",
+			tilldate: \"$tilldate\",
+      tilltime: \"$tilltime\",
+    },function(data) { 
+      $('#get_stat').html(data);
+    },\"html\");
+    setTimeout(\"get_stat()\",2000);  
+  }
+-->
+</script>";
+ return $js;
+
+}

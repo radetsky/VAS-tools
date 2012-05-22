@@ -97,19 +97,20 @@ while ( $answer = $manager->receive_answer ) {
 #warn Dumper ( $answer );
   if ( defined ( $answer->{'Event'} ) ) { 
   	if ( $answer->{'Event'} =~ /QueueMember/i ) { 
-			if ( $answer->{'Queue'} =~ /$queuename/i ) {
-				if ( defined ( $answer->{'Name'} ) ) { 
-				  my $agentname = $answer->{'Name'}; 
-					$agentsStatus->{$agentname} = $answer->{'Status'};
-					$agentsPenalty->{$agentname} = $answer->{'Penalty'}; 
-			  	#warn Dumper ($answer); 
-				}
-			}
 			if ($report eq 'agentas') { 
 				if ( defined ( $answer->{'Name'} ) ) {
 					 my $agentname = $answer->{'Name'};
 					 $agentsStatus->{$agentname} = $answer->{'Status'};
 					 $agentsPenalty->{$agentname} = $answer->{'Penalty'};
+				}
+			}
+		  if ( defined ( $queuename ) ) { 
+		  	if ( $answer->{'Queue'} =~ /$queuename/i ) {
+					if ( defined ( $answer->{'Name'} ) ) { 
+					  my $agentname = $answer->{'Name'}; 
+						$agentsStatus->{$agentname} = $answer->{'Status'};
+						$agentsPenalty->{$agentname} = $answer->{'Penalty'};
+					} 
 				}
 			}
 		}
@@ -144,11 +145,16 @@ my $pk = undef;
 # Хэш (позиция) = кол-во звонков на данной позиции 
 my $list_positions = undef; 
 
+# statusList хранит все записи Event: Status для будущего поиска и/или анализа. Чтобы не вызывать еще раз. 
+my @statusList = (); 
+
 while ( $answer = $manager->receive_answer ) {
 #	warn Dumper ($answer);
   
-	if ( defined ( $answer->{'Event'} ) ) { 
-		if ( $answer->{'Event'} =~ /^Status/i ) { 
+	if ( defined ( $answer->{'Event'} ) ) {
+		if ( $answer->{'Event'} =~ /^Status/i ) {
+			push @statusList,$answer; 
+
 			if ( defined ( $answer->{'Accountcode'} ) ) { 
 				if ( $answer->{'Accountcode'} ne '' ) { 
 					$acctcode = $answer->{'Accountcode'};
@@ -205,6 +211,33 @@ while ( $answer = $manager->receive_answer ) {
   }
 }
 
+#
+# Get All Agents status via Action: Agents / agents show (cli) 
+#
+
+$sent = $manager->sendcommand ( Action => 'Agents' );
+unless ( defined ( $sent ) ) {
+  warn 'Could not send action to Asterisk Manager. ' . $manager->geterror;
+	die;
+}
+
+my $agentsListOnline = undef; 
+
+while ( $answer = $manager->receive_answer ) {
+  if ( defined ( $answer->{'Event'} ) ) {
+		if ($answer->{'Event'} =~ /Agents/ ) { 
+			my $agentNum = $answer->{'Agent'};
+			next unless ( defined ( $agentNum ) );
+			$agentsListOnline->{$agentNum}->{'Status'} = $answer->{'Status'}; 
+			$agentsListOnline->{$agentNum}->{'Channel'} = $answer->{'LoggedInChan'};
+			$agentsListOnline->{$agentNum}->{'CallerID'} = find_callerid_by_channel($answer->{'LoggedInChan'}); 
+
+		}
+  }
+}
+
+#warn Dumper ($agentsListOnline); 
+
 #print "List of account codes and count of calls.<br>"; 
 #foreach $acctcode ( keys %$list_acctcodes ) {
 #	print $acctcode . " : " . $list_acctcodes->{$acctcode} . "<br>"; 
@@ -255,7 +288,7 @@ my $template_vars = {
   cc02_online => show_active_agents_calls('Agent/702'),
 	
 	cc03_state => get_state_by_int ($agentsStatus->{'Agent/703'}), 
-	cc03_rt => get_rt_by_state ('Agent/704'),
+	cc03_rt => get_rt_by_state ('Agent/703'),
 	cc03_online => show_active_agents_calls('Agent/703'),
 
 	cc04_state => get_state_by_int ($agentsStatus->{'Agent/704'}), 
@@ -270,29 +303,29 @@ my $template_vars = {
 	cc06_rt => get_rt_by_state ('Agent/706'),
 	cc06_online => show_active_agents_calls('Agent/706'),
 
-	cc01_avg => get_avg_seconds_complete_talks ('Agent/701'),
+	cc01_avg => sprintf("%.2f",get_avg_seconds_complete_talks ('Agent/701')),
   cc01_cnt => get_count_complete_talks  ('Agent/701'),
-  cc01_min => get_minutes_complete_talks  ('Agent/701'),
+  cc01_min => sprintf("%.2f",get_minutes_complete_talks  ('Agent/701')),
 
-	cc02_avg => get_avg_seconds_complete_talks ('Agent/702'),
+	cc02_avg => sprintf("%.2f",get_avg_seconds_complete_talks ('Agent/702')),
   cc02_cnt => get_count_complete_talks  ('Agent/702'),
-  cc02_min => get_minutes_complete_talks  ('Agent/702'),
+  cc02_min => sprintf("%.2f",get_minutes_complete_talks  ('Agent/702')),
 
-	cc03_avg => get_avg_seconds_complete_talks ('Agent/703'),
+	cc03_avg => sprintf("%.2f",get_avg_seconds_complete_talks ('Agent/703')),
   cc03_cnt => get_count_complete_talks  ('Agent/703'),
-  cc03_min => get_minutes_complete_talks  ('Agent/703'),
+  cc03_min => sprintf("%.2f",get_minutes_complete_talks  ('Agent/703')),
 
-	cc04_avg => get_avg_seconds_complete_talks ('Agent/704'),
+	cc04_avg => sprintf("%.2f",get_avg_seconds_complete_talks ('Agent/704')),
   cc04_cnt => get_count_complete_talks  ('Agent/704'),
-  cc04_min => get_minutes_complete_talks  ('Agent/704'),
+  cc04_min => sprintf("%.2f",get_minutes_complete_talks  ('Agent/704')),
 
-	cc05_avg => get_avg_seconds_complete_talks ('Agent/705'),
+	cc05_avg => sprintf("%.2f",get_avg_seconds_complete_talks ('Agent/705')),
   cc05_cnt => get_count_complete_talks  ('Agent/705'),
-  cc05_min => get_minutes_complete_talks  ('Agent/705'),
+  cc05_min => sprintf("%.2f",get_minutes_complete_talks  ('Agent/705')),
 	
-  cc06_avg => get_avg_seconds_complete_talks ('Agent/706'),
+  cc06_avg => sprintf("%.2f",get_avg_seconds_complete_talks ('Agent/706')),
   cc06_cnt => get_count_complete_talks  ('Agent/706'),
-  cc06_min => get_minutes_complete_talks  ('Agent/706'),
+  cc06_min => sprintf("%.2f",get_minutes_complete_talks  ('Agent/706')),
 
 	zagalom_cnt => get_count_of_calls(undef), 
 
@@ -325,6 +358,17 @@ my $template_vars = {
 	dtmfplus => get_dtmf_plus(), 
 	dtmfminus => get_dtmf_minus(),
 
+	kz_cnt_30 => get_count_last_period ('kz',30),
+	kz_cnt_20 => get_count_last_period ('kz',20),
+	kz_cnt_10 => get_count_last_period ('kz',10),
+	kz_cnt_zagalom => get_count_last_period ('kz',undef),
+
+	cc01_callerid => get_agent_callerid(701),
+	cc02_callerid => get_agent_callerid(702),
+	cc03_callerid => get_agent_callerid(703),
+  cc04_callerid => get_agent_callerid(704),
+  cc05_callerid => get_agent_callerid(705),
+
 };
 
 $template->process('online.tt',$template_vars) || die $template->error() . "\n";
@@ -334,15 +378,29 @@ if ( $report eq 'agentas') {
 	my @agents1 = (); 
 	my @agents2 = (); 
 	my @agents3 = (); 
-	for (my $i = 100; $i < 400; $i++) { 
+	for (my $i = 501; $i < 512; $i++) { 
+		next if ($i == 505);  
 		push @agents1,"Agent/".$i;
 	}
-  for (my $i = 400; $i < 700; $i++) {
+	push @agents1,"Agent/200";
+	push @agents1,"Agent/201";
+	push @agents1,"Agent/202";
+
+  for (my $i = 701; $i <= 705; $i++) {
 	    push @agents2,"Agent/".$i;
 	}
-  for (my $i = 700; $i < 900; $i++) {
+  for (my $i = 101; $i <= 105; $i++) {
+	    push @agents2,"Agent/".$i;
+	}
+
+  for (my $i = 601; $i <=605; $i++) {
 	    push @agents3,"Agent/".$i;
 	}
+
+	push @agents3,"Agent/301";
+	push @agents3,"Agent/302";
+	push @agents3,"Agent/303";
+
 
 	my $template_vars = {
   	date_now     => date_now(),
@@ -350,11 +408,12 @@ if ( $report eq 'agentas') {
 		agents2			 => \@agents2,
 		agents3			 => \@agents3,
 		agent_state  => sub { return agent_state(@_); },  
+		agent_callerid => sub { return agent_callerid_agent (@_);},
 		agent_penalty => sub { return agent_penalty(@_); },
 		agent_online => sub { return show_active_agents_calls(@_); },
-		agent_avg => sub { return sprintf("%.2f",get_avg_seconds_complete_talks (@_)); },
-		agent_cnt => sub { return get_count_complete_talks (@_); }, 
-		agent_min => sub { return sprintf("%.2f",get_minutes_complete_talks (@_)); },
+		agent_avg => sub { return sprintf("%.2f",get_avg_seconds_complete_talks(@_)); },
+		agent_cnt => sub { return get_count_complete_talks(@_); }, 
+		agent_min => sub { return sprintf("%.2f",get_minutes_complete_talks(@_)); },
 
 	};
 	$template->process('agentas.tt',$template_vars) || die $template->error() . "\n";
@@ -366,6 +425,102 @@ exit (0);
 #-----------------------------------------
 # Subs list 
 #-----------------------------------------
+sub agent_callerid_agent { 
+	my $agentStr = shift; 
+	my ($agent,$agentNum) = split ('/',$agentStr); 
+	return get_agent_callerid($agentNum); 
+
+}
+=item B<get_agent_callerid> 
+
+=cut 
+
+sub get_agent_callerid { 
+	my $agent = shift; 
+
+	return $agentsListOnline->{$agent}->{'CallerID'}; 
+
+}
+
+=item B<find_callerid_by_channel (channel) 
+
+ Возвращает callerid или undef. Работает в массиве statusList.
+
+=cut 
+
+sub find_callerid_by_channel { 
+	my $channel = shift; 
+
+	unless ( defined ( $channel ) ) { 
+		return undef; 
+	} 
+
+	foreach $answer ( @statusList ) {
+		next unless ( defined ( $answer->{'Channel'} ) ); 
+		if ($answer->{'Channel'} eq $channel ) { 
+			return $answer->{'CallerIDNum'}; 
+		}
+	}
+	return undef; 
+
+}
+=item B<get_count_last_period ( country code, minutes )> 
+
+  Возвращает количество звонков по указанной стране за указанный период. 
+	Ориентируется на CDR и коды страны. 
+
+=cut 
+
+sub get_count_last_period {
+	my $country_code = shift;
+	my $minutes = shift;
+
+	my $timeinterval = undef; 
+	unless ( defined ( $minutes ) ) { 
+		$timeinterval = sprintf("calldate between '%s' and '%s'", 
+			$fromdatetime,$tilldatetime); 
+			
+	} else { 
+		$timeinterval = sprintf("calldate > now()-'%d minutes'::interval", $minutes);
+	}
+
+	my $similar = undef;
+	unless ( defined ( $conf->{'countries'}->{$country_code} ) ) { 
+		return 'ERR'; 
+	} 
+
+	$similar = $conf->{'countries'}->{$country_code};  
+
+	my $dnid_similar = undef; 
+	unless ( defined ( $conf->{'dnid'}->{$country_code}->{$queuename} ) ) { 
+		return 'ERR'; 
+	}
+
+	$dnid_similar = $conf->{'dnid'}->{$country_code}->{$queuename};
+
+	my $sql = sprintf("select count(calldate) as count from public.cdr where %s and dnid similar to '%s%%' and src similar to '%s%%'",
+		$timeinterval,
+		$dnid_similar,
+		$similar
+  ); 
+
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+    $sth->execute ();
+  };
+  if ($@) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) {
+    return 0;
+  }
+  return $res->{'count'};
+
+}
+
 sub agent_penalty { 
 	my $agentid = shift; 
 
@@ -405,6 +560,9 @@ sub get_minutes_complete_talks {
   unless ( defined ( $res ) ) {
     return 0;
   }
+	unless ( defined ( $res->{'minutes'} ) ) { 
+		return 0; 
+	} 
   return $res->{'minutes'};
 
 }
@@ -416,8 +574,8 @@ sub get_minutes_complete_talks {
 =cut 
 
 sub get_avg_seconds_complete_talks { 
+	my $agentid = shift;
 
-  my $agentid = shift;
   my $sql = "select avg(calltime) as average from public.queue_parsed where agentid=? and status like 'COMPLETE%' and time between ? and ?";
   my $sth = $dbh->prepare($sql);
 
@@ -432,6 +590,9 @@ sub get_avg_seconds_complete_talks {
   unless ( defined ( $res ) ) {
     return 0;
   }
+	unless ( defined ( $res->{'average'} ) ) { 
+		return 0; 
+	} 
   return $res->{'average'};
 
 } 
@@ -577,11 +738,34 @@ sub show_active_agents_calls {
 	my $str = ''; 
 	my $count = 0; 
 
-  foreach my $cdnid ( sort keys %{$agentsTalks->{$agent}} ) { 
+	unless ( defined ($tilldate ) ) { 
+		# Не задан tilldate параметр. Считаем "онлайн" звонки. 
+
+  	foreach my $cdnid ( sort keys %{$agentsTalks->{$agent}} ) { 
 			$count = $agentsTalks->{$agent}->{$cdnid}; 
 			$str .= get_div_by_calls_and_dnid ( $count, $cdnid );
+  	}
+
+		return $str; 
+  } 
+	# Задан tilldate. Считаем по CDR. 
+	my $sql = "select dnid,count(dnid) as count from public.cdr where calldate between ? and ? and dstchannel = ? group by dnid"; 
+	
+  my $sth = $dbh->prepare ($sql);
+	eval { 
+		$sth->execute($fromdatetime,$tilldatetime,$agent); 
+	}; 
+  if ( $@ ) {
+	  warn $dbh->errstr;
+		exit(-1);
   }
+
+	while (my $res = $sth->fetchrow_hashref ) { 
+		$str .= get_div_by_calls_and_dnid ( $res->{'count'},
+																				$res->{'dnid'} );
+	}
 	return $str; 
+
 }
 
 =item B<show_active_calls> 
@@ -596,6 +780,26 @@ sub show_active_calls {
 	my $count = 0; 
 	
 	my $zcount = undef; 
+
+	if ( defined ( $tilldate ) ) { 
+		unless ( defined ( $pos ) ) {
+			my $dnid_similar = $conf->{'dnid'}->{'kz'}->{$queuename}; 
+			my $sql = sprintf("select dnid, count(dnid) as count from public.cdr where calldate between ? and ? and dnid similar to '%s%%' group by dnid",$dnid_similar); 
+			my $sth = $dbh->prepare($sql); 
+			eval { 
+				$sth->execute($fromdatetime,$tilldatetime); 
+			}; 
+			if ($@ ) { 
+				warn $dbh->errstr; 
+				exit(-1); 
+			} 
+			while (my $res = $sth->fetchrow_hashref) { 
+				$str .= get_div_by_calls_and_dnid ( $res->{'count'}, $res->{'dnid'} );
+		  }	
+
+			return $str; 
+		}
+	}
 
 	unless ( defined ( $pos ) ) { # Переданный параметр is undef, что означает тот факт, 
 																# что надо посчитать все текущие звонки по DNID без учета позиций. 
@@ -635,7 +839,7 @@ sub get_div_by_calls_and_dnid {
 	my $width = $count * 10; 
 	my $bgcolor = $conf->{'colors'}->{$dnid}; 
 
-	return sprintf ("<div style=\"width: %d px; text-align: center; background-color: %s; float: left; \">%d</div>", $width, $bgcolor, $count );
+	return sprintf ("<div style=\"width: %dpx; text-align: center; background-color: %s; float: left; \">%d</div>", $width, $bgcolor, $count );
 
 }
 
@@ -701,7 +905,7 @@ sub filldatetime {
 		$time = date_time(date_now()); 
 	} 
 
-  return $date . ' ' . $time . ':00'; 
+  return $date . ' ' . $time;  
 	
 }
 

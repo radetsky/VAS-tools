@@ -11,3 +11,36 @@ macro init-call () {
     MixMonitor(${MONITOR_FILENAME}.wav); 
     return;
 };
+
+macro normalize_callerid_kz () { 
+    CALLERIDNUM=${CALLERID(num)}; 
+// Cut the "plus". 
+		PREFIX=${CALLERIDNUM:0:1}; 
+		if ("${PREFIX}"=="+") { 
+			CALLERIDNUM=${CALLERIDNUM:1};
+		}
+
+// Check for international number;
+		CLEN=${LEN(${CALLERIDNUM})}; 
+		if (${CLEN}==11) { 
+			// International format. Do not change it. 
+			NoOp(${CALLERIDNUM} in the international format.);
+			Set(CALLERID(all)=${CALLERIDNUM}); 
+			return;
+		}
+    if (${CLEN}==10) { 
+			// National format 7XX XXX XX XX 
+			NoOp(${CALLERIDNUM} in the national format. Adding 7);
+			Set(CALLERID(all)=7${CALLERIDNUM});
+			return;
+		}
+		if (${CLEN}==9) { 
+			// National format without 7 like without 0 in Ukraine. 
+			NoOp(${CALLERIDNUM} in the national format. Adding 77);
+			Set(CALLERID(all)=77${CALLERIDNUM});
+			return;
+		}
+		NoOp("No change to ${CALLERIDNUM}");
+		Set(CALLERID(all)=${CALLERIDNUM});
+		return;
+};
