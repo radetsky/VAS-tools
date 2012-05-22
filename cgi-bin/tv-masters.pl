@@ -363,6 +363,21 @@ my $template_vars = {
 	kz_cnt_10 => get_count_last_period ('kz',10),
 	kz_cnt_zagalom => get_count_last_period ('kz',undef),
 
+	kz_avg_30 => get_avg_last_period ('kz',30),  
+	kz_avg_20 => get_avg_last_period ('kz',20), 
+	kz_avg_10 => get_avg_last_period ('kz',10), 
+	kz_avg_zagalom => get_avg_last_period ('kz',undef), 
+
+	kz_min_30 => get_min_last_period ('kz',30), 
+	kz_min_20 => get_min_last_period ('kz',20), 
+	kz_min_10 => get_min_last_period ('kz',10),
+	kz_min_zagalom => get_min_last_period ('kz',undef), 
+
+	kz_avgmin_30 => get_avgmin_last_period ('kz',30),
+	kz_avgmin_20 => get_avgmin_last_period ('kz',20),
+	kz_avgmin_10 => get_avgmin_last_period ('kz',10),
+	kz_avgmin_zagalom => get_avgmin_last_period ('kz', undef), 
+
 	cc01_callerid => get_agent_callerid(701),
 	cc02_callerid => get_agent_callerid(702),
 	cc03_callerid => get_agent_callerid(703),
@@ -520,6 +535,165 @@ sub get_count_last_period {
   return $res->{'count'};
 
 }
+
+sub get_avg_last_period {
+	my $country_code = shift;
+	my $minutes = shift;
+
+	my $timeinterval = undef; 
+	unless ( defined ( $minutes ) ) { 
+		$timeinterval = sprintf("calldate between '%s' and '%s'", 
+			$fromdatetime,$tilldatetime); 
+			
+	} else { 
+		$timeinterval = sprintf("calldate > now()-'%d minutes'::interval", $minutes);
+	}
+
+	my $similar = undef;
+	unless ( defined ( $conf->{'countries'}->{$country_code} ) ) { 
+		return 'ERR'; 
+	} 
+
+	$similar = $conf->{'countries'}->{$country_code};  
+
+	my $dnid_similar = undef; 
+	unless ( defined ( $conf->{'dnid'}->{$country_code}->{$queuename} ) ) { 
+		return 'ERR'; 
+	}
+
+	$dnid_similar = $conf->{'dnid'}->{$country_code}->{$queuename};
+
+	my $sql = sprintf("select avg(billsec) as average from public.cdr where %s and dnid similar to '%s%%' and src similar to '%s%%'",
+		$timeinterval,
+		$dnid_similar,
+		$similar
+  ); 
+
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+    $sth->execute ();
+  };
+  if ($@) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) {
+    return 0;
+  }
+	unless ( defined ( $res->{'average'} ) ) { 
+		return 0; 
+	} 
+  return sprintf("%.2f",$res->{'average'}); 
+}
+
+sub get_min_last_period {
+	my $country_code = shift;
+	my $minutes = shift;
+
+	my $timeinterval = undef; 
+	unless ( defined ( $minutes ) ) { 
+		$timeinterval = sprintf("calldate between '%s' and '%s'", 
+			$fromdatetime,$tilldatetime); 
+			
+	} else { 
+		$timeinterval = sprintf("calldate > now()-'%d minutes'::interval", $minutes);
+	}
+
+	my $similar = undef;
+	unless ( defined ( $conf->{'countries'}->{$country_code} ) ) { 
+		return 'ERR'; 
+	} 
+
+	$similar = $conf->{'countries'}->{$country_code};  
+
+	my $dnid_similar = undef; 
+	unless ( defined ( $conf->{'dnid'}->{$country_code}->{$queuename} ) ) { 
+		return 'ERR'; 
+	}
+
+	$dnid_similar = $conf->{'dnid'}->{$country_code}->{$queuename};
+
+	my $sql = sprintf("select (sum(billsec)::float/60)::numeric as minutes from public.cdr where %s and dnid similar to '%s%%' and src similar to '%s%%'",
+		$timeinterval,
+		$dnid_similar,
+		$similar
+  ); 
+
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+    $sth->execute ();
+  };
+  if ($@) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) {
+    return 0;
+  }
+	unless ( defined ( $res->{'minutes'} ) ) { 
+		return 0; 
+	} 
+  return sprintf("%.2f",$res->{'minutes'}); 
+}
+
+sub get_avgmin_last_period {
+	my $country_code = shift;
+	my $minutes = shift;
+
+	my $timeinterval = undef; 
+	unless ( defined ( $minutes ) ) { 
+		$timeinterval = sprintf("calldate between '%s' and '%s'", 
+			$fromdatetime,$tilldatetime); 
+			
+	} else { 
+		$timeinterval = sprintf("calldate > now()-'%d minutes'::interval", $minutes);
+	}
+
+	my $similar = undef;
+	unless ( defined ( $conf->{'countries'}->{$country_code} ) ) { 
+		return 'ERR'; 
+	} 
+
+	$similar = $conf->{'countries'}->{$country_code};  
+
+	my $dnid_similar = undef; 
+	unless ( defined ( $conf->{'dnid'}->{$country_code}->{$queuename} ) ) { 
+		return 'ERR'; 
+	}
+
+	$dnid_similar = $conf->{'dnid'}->{$country_code}->{$queuename};
+
+	my $sql = sprintf(" select sum(billsec),count(calldate),sum(billsec)::float/60 as s1,sum(billsec)::float/60/count(calldate) as avgmin from public.cdr  where %s and dnid similar to '%s%%' and src similar to '%s%%'",
+		$timeinterval,
+		$dnid_similar,
+		$similar
+  ); 
+
+  my $sth = $dbh->prepare($sql);
+
+  eval {
+    $sth->execute ();
+  };
+  if ($@) {
+    warn $dbh->errstr;
+    exit(-1);
+  }
+  my $res = $sth->fetchrow_hashref;
+  unless ( defined ( $res ) ) {
+    return 0;
+  }
+	unless ( defined ( $res->{'avgmin'} ) ) { 
+		return 0; 
+	} 
+  return sprintf("%.2f",$res->{'avgmin'});
+}
+
+
+
 
 sub agent_penalty { 
 	my $agentid = shift; 
@@ -852,6 +1026,9 @@ sub get_div_by_calls_and_dnid {
 sub get_rt_by_state { 
 	my $agent  = shift; 
 
+  return undef unless defined ( $agent ); 
+	return undef unless defined ( $agentsStatus->{$agent} ); 
+	
 	if ($agentsStatus->{$agent} != 5) { 
 		return $agentsPenalty->{$agent}; 
 	} 

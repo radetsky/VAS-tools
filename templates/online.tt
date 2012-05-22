@@ -219,19 +219,19 @@ Min.
 <td width="20%">For last 30 min.</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
-<td align="right">avg</td><td align="right">[% kz_cnt_30 %]</td><td align="right">min</td><td align="right">avg/min</td>
+<td align="right">[% kz_avg_30 %]</td><td align="right">[% kz_cnt_30 %]</td><td align="right">[% kz_min_30 %]</td><td align="right">[% kz_avgmin_30 %]</td>
 </tr>
 <tr>
 <td width="20%">For last 20 min.</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
-<td align="right">avg</td><td align="right">[% kz_cnt_20 %]</td><td align="right">min</td><td align="right">avg/min</td>
+<td align="right">[% kz_avg_20 %]</td><td align="right">[% kz_cnt_20 %]</td><td align="right">[% kz_min_20 %]</td><td align="right">[% kz_avgmin_20 %]</td>
 </tr>
 <tr>
 <td width="20%">For last 10 min.</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
 <td align="right">avg</td><td align="right">cnt</td><td align="right">min</td><td align="right">avg/min</td><td style="border-color: green; border-style: dotted;">&nbsp;</td>
-<td align="right">avg</td><td align="right">[% kz_cnt_10 %]</td><td align="right">min</td><td align="right">avg/min</td>
+<td align="right">[% kz_avg_10 %]</td><td align="right">[% kz_cnt_10 %]</td><td align="right">[% kz_min_10 %]</td><td align="right">[% kz_avgmin_10 %]</td>
 </tr>
 </tbody>
 <thead>
@@ -239,7 +239,7 @@ Min.
 <th width="20%">Summary</th><th style="border-color: green; border-style: dotted;">&nbsp;</th>
 <th>avg</th><th>cnt</th><th>min</th><th>avg/min</th><th style="border-color: green; border-style: dotted;">&nbsp;</th>
 <th>avg</th><th>cnt</th><th>min</th><th>avg/min</th><th style="border-color: green; border-style: dotted;">&nbsp;</th>
-<th>avg</th><th>[% kz_cnt_zagalom %]</th><th>min</th><th>avg/min</th>
+<th>[% kz_avg_zagalom %]</th><th>[% kz_cnt_zagalom %]</th><th>[% kz_min_zagalom %]</th><th>[% kz_avgmin_zagalom %]</th>
 </tr>
 </thead>
 </table>

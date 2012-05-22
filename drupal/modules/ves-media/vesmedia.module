@@ -95,8 +95,8 @@ function vesmedia_online_0724() {
   function get_stat() { 
     $.get(\"/cgi-bin/tv-masters.pl\",
     { queue: \"TV-masters\",
-      fromtime: \"07:00\",
-      tilltime: \"23:59\",
+      fromtime: \"07:00:00\",
+      tilltime: \"23:59:59\",
     },function(data) { 
       $('#get_stat').html(data);
     },\"html\");
@@ -115,16 +115,16 @@ function vesmedia_offline () {
   drupal_add_css(JQUERY_UI_PATH . '/themes/default/ui.datepicker.css');
  
   $sincedate = isset($_REQUEST['sincedate']) ? $_REQUEST['sincedate'] : NULL;
-  $sincetime = isset($_REQUEST['sincetime']) ? $_REQUEST['sincetime'] : '00:00';
+  $sincetime = isset($_REQUEST['sincetime']) ? $_REQUEST['sincetime'] : '00:00:00';
   $tilldate = isset($_REQUEST['tilldate']) ? $_REQUEST['tilldate'] : NULL;
-  $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '00:00';
+  $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '23:59:59';
   $submitted = isset($_REQUEST['submitted']);
 
 	if ($sincedate == NULL) { 
 		$sincedate = strftime ("%Y-%m-%d");
 	}
 	if ($tilldate == NULL) { 
-		$tilldate = strftime ("%Y-%m-%d",time()+86400);
+		$tilldate = strftime ("%Y-%m-%d");
 	}
 
   $out = '';
@@ -139,11 +139,11 @@ function vesmedia_offline () {
     '<p style="text-align:center">'.
       t('Since').'&nbsp;'.
       '<input type="text" name="sincedate" size="10" maxlength="10" class="datepicker" value="'.$sincedate.'" />'.
-      '<input type="text" name="sincetime" size="5" maxlength="5" class="timepicker" value="'.$sincetime.'" />'.
+      '<input type="text" name="sincetime" size="7" maxlength="7" class="timepicker" value="'.$sincetime.'" />'.
       '&nbsp; '.
       t('Till').'&nbsp;'.
       '<input type="text" name="tilldate" size="10" maxlength="10" class="datepicker" value="'.$tilldate.'" />'.
-      '<input type="text" name="tilltime" size="5" maxlength="5" class="timepicker" value="'.$tilltime.'" />'.
+      '<input type="text" name="tilltime" size="7" maxlength="7" class="timepicker" value="'.$tilltime.'" />'.
       '&nbsp; '.
       '<input type="submit" name="submitted" value="'.t('Show').'" />'.
     '</p>'.
@@ -191,8 +191,8 @@ function vesmedia_opline () {
   function get_stat() { 
     $.get(\"/cgi-bin/tv-masters.pl\",
     { report: \"agentas\",
-      fromtime: \"00:00\",
-      tilltime: \"06:59\",
+      fromtime: \"00:00:00\",
+      tilltime: \"06:59:59\",
     },function(data) { 
       $('#get_stat').html(data);
     },\"html\");
@@ -213,8 +213,8 @@ function vesmedia_opline_0724 () {
   function get_stat() { 
     $.get(\"/cgi-bin/tv-masters.pl\",
     { report: \"agentas\",
-      fromtime: \"07:00\",
-      tilltime: \"23:59\",
+      fromtime: \"07:00:00\",
+      tilltime: \"23:59:59\",
     },function(data) { 
       $('#get_stat').html(data);
     },\"html\");
@@ -231,15 +231,15 @@ function vesmedia_offoper () {
   drupal_add_css(JQUERY_UI_PATH . '/themes/default/ui.datepicker.css');
  
   $sincedate = isset($_REQUEST['sincedate']) ? $_REQUEST['sincedate'] : NULL;
-  $sincetime = isset($_REQUEST['sincetime']) ? $_REQUEST['sincetime'] : '00:00';
+  $sincetime = isset($_REQUEST['sincetime']) ? $_REQUEST['sincetime'] : '00:00:00';
   $tilldate = isset($_REQUEST['tilldate']) ? $_REQUEST['tilldate'] : NULL;
-  $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '00:00';
+  $tilltime = isset($_REQUEST['tilltime']) ? $_REQUEST['tilltime'] : '23:59:59';
   $submitted = isset($_REQUEST['submitted']);
   if ($sincedate == NULL) {
     $sincedate = strftime ("%Y-%m-%d");
   }
   if ($tilldate == NULL) {
-    $tilldate = strftime ("%Y-%m-%d",time()+86400);
+    $tilldate = strftime ("%Y-%m-%d");
   }
 
   $out = '';
@@ -254,11 +254,11 @@ function vesmedia_offoper () {
     '<p style="text-align:center">'.
       t('Since').'&nbsp;'.
       '<input type="text" name="sincedate" size="10" maxlength="10" class="datepicker" value="'.$sincedate.'" />'.
-      '<input type="text" name="sincetime" size="5" maxlength="5" class="timepicker" value="'.$sincetime.'" />'.
+      '<input type="text" name="sincetime" size="7" maxlength="7" class="timepicker" value="'.$sincetime.'" />'.
       '&nbsp; '.
       t('Till').'&nbsp;'.
       '<input type="text" name="tilldate" size="10" maxlength="10" class="datepicker" value="'.$tilldate.'" />'.
-      '<input type="text" name="tilltime" size="5" maxlength="5" class="timepicker" value="'.$tilltime.'" />'.
+      '<input type="text" name="tilltime" size="7" maxlength="7" class="timepicker" value="'.$tilltime.'" />'.
       '&nbsp; '.
       '<input type="submit" name="submitted" value="'.t('Show').'" />'.
     '</p>'.
