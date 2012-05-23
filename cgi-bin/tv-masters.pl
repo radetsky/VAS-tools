@@ -254,7 +254,6 @@ foreach $pk ( keys %$list_positions ) {
 	$cls->{$str_position[0]}->{$str_position[1]} = $list_positions->{$pk}; 
 
 }
-
 #---
 # Show statistic
 #---
@@ -435,6 +434,72 @@ if ( $report eq 'agentas') {
 
 } 
 
+# Отчет по IVR Billing
+
+if ( $report eq 'ivrbilling') { 
+
+	my $sql = "SELECT
+		dnid,
+		get_dnid_name(dnid) as target,
+		get_operator_name(src) as oper,
+		count(*) as numcalls,
+		sum(1 - get_call_billed(billsec)) as notbilled,
+		ceil(sum(get_call_billed_sec(billsec))::float/60) as billedmin
+	from cdr
+	where calldate between ? and ?
+		and get_dnid_name(dnid) = ?
+	group by target,dnid,oper
+	order by target,dnid,oper";
+
+	my $sth = $dbh->prepare($sql);
+	eval { $sth->execute($fromdatetime, $tilldatetime, $queuename); };
+	if ($@) {
+		warn $dbh->errstr;
+		exit(-1);
+	}
+
+	my $dnid = '';
+
+	my $tot_numcalls = 0;
+	my $tot_notbilled = 0;
+	my $tot_billedmin = 0;
+
+	my @ivrdata = ();
+	while (my $row = $sth->fetchrow_hashref()) {
+		
+		if ($row->{dnid} ne $dnid) {
+
+			# Process totals
+			if ($dnid) {
+				push @ivrdata, { totals => 1, oper => 'Total', numcalls => $tot_numcalls, notbilled => $tot_notbilled, billedmin => $tot_billedmin, };
+				$tot_numcalls = 0;
+				$tot_notbilled = 0;
+				$tot_billedmin = 0;
+			}
+		
+			push @ivrdata, { newdnid => $row->{dnid} };
+			$dnid = $row->{dnid};
+
+		}
+
+		$tot_numcalls += $row->{numcalls};
+		$tot_notbilled += $row->{notbilled};
+		$tot_billedmin += $row->{billedmin};
+
+		push @ivrdata, $row;
+
+	}
+	push @ivrdata, { totals => 1, oper => 'Total', numcalls => $tot_numcalls, notbilled => $tot_notbilled, billedmin => $tot_billedmin, };
+
+	my $template_vars = {
+  	fromdatetime => $fromdatetime,
+  	tilldatetime => $tilldatetime,
+		billdata => \@ivrdata,
+		queuename => $queuename,
+	};
+	$template->process('ivrbilling.tt',$template_vars) || die $template->error() . "\n";
+
+}
 exit (0);
 
 #-----------------------------------------
@@ -992,6 +1057,7 @@ sub show_active_calls {
   	}
 		return $str; 
   }
+
 	foreach my $cdnid ( sort keys %{$cls->{$pos}} ) { 
 		$count = $cls->{$pos}->{$cdnid};  
 		$str .= get_div_by_calls_and_dnid ( $count, $cdnid );  
@@ -1009,6 +1075,8 @@ sub show_active_calls {
 sub get_div_by_calls_and_dnid { 
 	my $count = shift; 
 	my $dnid  = shift;
+
+	warn "dnid=$dnid count=$count"; 
 
 	my $width = $count * 10; 
 	my $bgcolor = $conf->{'colors'}->{$dnid}; 
