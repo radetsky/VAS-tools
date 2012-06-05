@@ -391,30 +391,19 @@ $template->process('online.tt',$template_vars) || die $template->error() . "\n";
 if ( $report eq 'agentas') { 
 	my @agents1 = (); 
 	my @agents2 = (); 
-	my @agents3 = (); 
-	for (my $i = 501; $i < 512; $i++) { 
-		next if ($i == 505);  
-		push @agents1,"Agent/".$i;
-	}
-	push @agents1,"Agent/200";
-	push @agents1,"Agent/201";
-	push @agents1,"Agent/202";
+	my @agents3 = ();
 
-  for (my $i = 701; $i <= 705; $i++) {
-	    push @agents2,"Agent/".$i;
-	}
-  for (my $i = 101; $i <= 105; $i++) {
-	    push @agents2,"Agent/".$i;
+	for (my $i = 1; $i <= 30; $i++) { 
+		push @agents1,sprintf("Agent/%03d",$i); 
 	}
 
-  for (my $i = 601; $i <=605; $i++) {
-	    push @agents3,"Agent/".$i;
+  for (my $i = 31; $i <= 60; $i++) {
+	    push @agents2,sprintf("Agent/%03d",$i);
 	}
 
-	push @agents3,"Agent/301";
-	push @agents3,"Agent/302";
-	push @agents3,"Agent/303";
-
+  for (my $i = 61; $i <= 80; $i++) {
+	    push @agents3,sprintf("Agent/%03d",$i);
+	}
 
 	my $template_vars = {
   	date_now     => date_now(),
